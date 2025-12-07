@@ -10,6 +10,7 @@
 
 # Config files
 cookies.txt
+db.txt
 
 # Env files
 *.env
