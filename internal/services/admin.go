@@ -1,10 +1,14 @@
 package services
 
-import "net/http"
+import (
+	"net/http"
+
+	u "github.com/nationpulse-bff/internal/utils"
+)
 
 type AdminService struct {
 	// Add any dependencies like database connections here
-	Permissions map[string]int
+	Configs *u.Configs
 }
 
 func (as *AdminService) SetPermissions(userID string, newPermissions map[string]int) bool {

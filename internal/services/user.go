@@ -9,12 +9,11 @@ import (
 	"net/http"
 
 	"github.com/nationpulse-bff/internal/auth"
-	"github.com/nationpulse-bff/internal/store"
+	u "github.com/nationpulse-bff/internal/utils"
 )
 
 type UserService struct {
-	Cache   *store.Redis
-	Context context.Context
+	Configs *u.Configs
 }
 
 type User struct {
@@ -26,7 +25,7 @@ type User struct {
 var demoUser = &User{ID: "1", Name: "admin", Password: "secret"}
 
 func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
-	rds := us.Cache
+	rds := us.Configs.Cache
 	log.Println("Handling Login Route..")
 	var in struct {
 		Name     string `json:"name"`
@@ -59,13 +58,13 @@ func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (us *UserService) HandleLogout(w http.ResponseWriter, r *http.Request) {
-	rds := us.Cache
+	rds := us.Configs.Cache
 	acc, _ := r.Cookie("access_token")
 	ref, _ := r.Cookie("refresh_token")
 
 	if acc.Value != "" {
 		if claims, err := auth.ParseAccess(acc.Value); err == nil {
-			_ = us.Cache.DelJTI(r.Context(), "access"+claims.ID)
+			_ = us.Configs.Cache.DelJTI(r.Context(), "access"+claims.ID)
 		}
 	}
 
@@ -79,7 +78,7 @@ func (us *UserService) HandleLogout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (us *UserService) HandleRefreshToken(w http.ResponseWriter, r *http.Request) {
-	rds := us.Cache
+	rds := us.Configs.Cache
 	ref, err := auth.MustCookie(r, "refresh_token")
 	if err != nil {
 		log.Println(http.StatusUnauthorized, errors.New("missing refresh token"))

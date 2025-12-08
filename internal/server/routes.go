@@ -7,6 +7,7 @@ import (
 
 	"github.com/nationpulse-bff/internal/services"
 	"github.com/nationpulse-bff/internal/store"
+	u "github.com/nationpulse-bff/internal/utils"
 )
 
 func handleDashboardRoute(w http.ResponseWriter, r *http.Request) {
@@ -26,16 +27,19 @@ func handleGrowthRoute(w http.ResponseWriter, r *http.Request) {
 }
 
 func addRoutes(ctx context.Context, muxes *ServerMux) {
-	userService := &services.UserService{
+	configs := &u.Configs{
+		Db:      ctx.Value("db").(*store.PgClient).Client,
 		Cache:   ctx.Value("redisClient").(*store.Redis),
 		Context: ctx,
 	}
-	adminService := &services.AdminService{}
-	dashboardService := &services.DashboardService{}
-	populationService := &services.PopulationService{}
-	healthService := &services.HealthService{}
-	economyService := &services.EconomyService{}
-	growthService := &services.GrowthService{}
+
+	userService := &services.UserService{Configs: configs}
+	adminService := &services.AdminService{Configs: configs}
+	dashboardService := &services.DashboardService{Configs: configs}
+	populationService := &services.PopulationService{Configs: configs}
+	healthService := &services.HealthService{Configs: configs}
+	economyService := &services.EconomyService{Configs: configs}
+	growthService := &services.GrowthService{Configs: configs}
 
 	muxes.UserMux.HandleFunc("POST /login", userService.HandleLogin)
 	muxes.UserMux.HandleFunc("POST /logout", userService.HandleLogout)

@@ -25,11 +25,14 @@ func main() {
 			log.Fatalf("%s not set", k)
 		}
 	}
-	// Create redis client and store in context
+	// Create redis and postgres store in context
 	rds := store.NewRedis()
 	db := store.NewPgClient()
 	ctx = context.WithValue(ctx, "redisClient", rds)
-	ctx = context.WithValue(ctx, "dbClient", db)
+	ctx = context.WithValue(ctx, "db", db)
+
+	defer db.Client.Close()
+	defer rds.Client.Close()
 	// Start a HTTP server
 	srv := internals.NewServer(ctx)
 
