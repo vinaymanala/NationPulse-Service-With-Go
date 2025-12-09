@@ -27,11 +27,10 @@ func handleGrowthRoute(w http.ResponseWriter, r *http.Request) {
 }
 
 func addRoutes(ctx context.Context, muxes *ServerMux) {
-	configs := &u.Configs{
-		Db:      ctx.Value("db").(*store.PgClient).Client,
-		Cache:   ctx.Value("redisClient").(*store.Redis),
-		Context: ctx,
-	}
+	db := ctx.Value("db").(*store.PgClient).Client
+	cache := ctx.Value("redisClient").(*store.Redis)
+
+	configs := &u.Configs{Db: db, Cache: cache, Context: ctx}
 
 	userService := &services.UserService{Configs: configs}
 	adminService := &services.AdminService{Configs: configs}
