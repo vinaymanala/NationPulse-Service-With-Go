@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/nationpulse-bff/internal/auth"
+	"github.com/nationpulse-bff/internal/store"
 	u "github.com/nationpulse-bff/internal/utils"
 )
 
@@ -16,20 +17,12 @@ type UserService struct {
 	Configs *u.Configs
 }
 
-type User struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Password string `json:"password"`
-}
-
-var demoUser = &User{ID: "1", Name: "admin", Password: "secret"}
-
 func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	rds := us.Configs.Cache
 	log.Println("Handling Login Route..")
 	var in struct {
-		Name     string `json:"name"`
-		Password string `json:"password"`
+		Name  string `json:"name"`
+		Email string `json:"email"`
 	}
 	err := json.NewDecoder(r.Body).Decode(&in)
 	if err != nil {
@@ -38,12 +31,20 @@ func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Printf("User %s attempting to log in", in.Name)
 	// check in db if user exists
-	if in.Name != demoUser.Name || in.Password != demoUser.Password {
+
+	user, err := us.Configs.Db.GetUser(&store.User{Name: in.Name, Email: in.Email})
+	if err != nil {
+		fmt.Println("Error fetching user from DB:", err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
+	//if in.Name != demoUser.Name || in.Password != demoUser.Password {
+	//	http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	//	return
+	//}
+	fmt.Println("USER FROM DB", user)
 
-	tokens, err := auth.IssueTokens(demoUser.ID)
+	tokens, err := auth.IssueTokens(user.ID)
 	if err != nil {
 		http.Error(w, "Failed to issue tokens", http.StatusInternalServerError)
 		return

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
@@ -16,6 +17,7 @@ func NewRedis() *Redis {
 		addr = "localhost:6379"
 	}
 	rdb := redis.NewClient(&redis.Options{Addr: addr})
+	fmt.Println("Connected to Redis successfully")
 	return &Redis{Client: rdb}
 }
 

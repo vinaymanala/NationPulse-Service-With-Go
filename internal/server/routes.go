@@ -1,13 +1,11 @@
 package internals
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/nationpulse-bff/internal/services"
-	"github.com/nationpulse-bff/internal/store"
-	u "github.com/nationpulse-bff/internal/utils"
+	"github.com/nationpulse-bff/internal/utils"
 )
 
 func handleDashboardRoute(w http.ResponseWriter, r *http.Request) {
@@ -26,11 +24,7 @@ func handleGrowthRoute(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Handling PerformanceGrowth Route..")
 }
 
-func addRoutes(ctx context.Context, muxes *ServerMux) {
-	db := ctx.Value("db").(*store.PgClient).Client
-	cache := ctx.Value("redisClient").(*store.Redis)
-
-	configs := &u.Configs{Db: db, Cache: cache, Context: ctx}
+func addRoutes(configs *utils.Configs, muxes *ServerMux) {
 
 	userService := &services.UserService{Configs: configs}
 	adminService := &services.AdminService{Configs: configs}

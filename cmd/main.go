@@ -10,6 +10,7 @@ import (
 	"github.com/joho/godotenv"
 	internals "github.com/nationpulse-bff/internal/server"
 	"github.com/nationpulse-bff/internal/store"
+	"github.com/nationpulse-bff/internal/utils"
 )
 
 //func run(ctx context.Context) {
@@ -28,13 +29,18 @@ func main() {
 	// Create redis and postgres store in context
 	rds := store.NewRedis()
 	db := store.NewPgClient()
-	ctx = context.WithValue(ctx, "redisClient", rds)
-	ctx = context.WithValue(ctx, "db", db)
 
-	defer db.Client.Close()
+	configs := &utils.Configs{
+		Db:      db,
+		Cache:   rds,
+		Context: ctx,
+	}
+
 	defer rds.Client.Close()
+	defer db.Client.Close()
+
 	// Start a HTTP server
-	srv := internals.NewServer(ctx)
+	srv := internals.NewServer(configs)
 
 	httpServer := &http.Server{
 		Addr:    ":8081",

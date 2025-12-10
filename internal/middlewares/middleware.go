@@ -9,13 +9,13 @@ import (
 	"strings"
 
 	"github.com/nationpulse-bff/internal/auth"
-	"github.com/nationpulse-bff/internal/store"
+	"github.com/nationpulse-bff/internal/utils"
 )
 
-type Middleware func(context.Context, http.Handler) http.Handler
-type WithAuthMiddleware func(context.Context, http.Handler) http.Handler
+type Middleware func(*utils.Configs, http.Handler) http.Handler
+type WithAuthMiddleware func(*utils.Configs, http.Handler) http.Handler
 
-func allowCors(ctx context.Context, next http.Handler) http.Handler {
+func allowCors(configs *utils.Configs, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Allow-Control-Access-Origin", "http://localhost:3000")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -29,14 +29,14 @@ func allowCors(ctx context.Context, next http.Handler) http.Handler {
 	})
 }
 
-func logging(ctx context.Context, next http.Handler) http.Handler {
+func logging(configs *utils.Configs, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Request: %s %s", r.Method, r.URL.Path)
 		next.ServeHTTP(w, r)
 	})
 }
 
-func panicRecovery(ctx context.Context, next http.Handler) http.Handler {
+func panicRecovery(configs *utils.Configs, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
@@ -56,8 +56,8 @@ func bearerFromHandler(r *http.Request) string {
 	return ""
 }
 
-func authMiddleware(ctx context.Context, next http.Handler) http.Handler {
-	rd := ctx.Value("redisClient").(*store.Redis)
+func authMiddleware(configs *utils.Configs, next http.Handler) http.Handler {
+	rd := configs.Cache
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Implement authentication logic here
 		var token string
@@ -102,35 +102,35 @@ func MustCookie(r *http.Request, name string) (string, error) {
 	return val.Value, nil
 }
 
-func executeMiddlewares(ctx context.Context, ms []Middleware, next http.Handler) http.Handler {
+func executeMiddlewares(configs *utils.Configs, ms []Middleware, next http.Handler) http.Handler {
 	h := next
 	for _, m := range ms {
-		h = m(ctx, h)
+		h = m(configs, h)
 	}
 	return h
 }
 
-func DefaultMiddlewares(ctx context.Context, next http.Handler) http.Handler {
+func DefaultMiddlewares(configs *utils.Configs, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		middlewares := []Middleware{
 			allowCors,
 			logging,
 			panicRecovery,
 		}
-		h := executeMiddlewares(ctx, middlewares, next)
+		h := executeMiddlewares(configs, middlewares, next)
 		h.ServeHTTP(w, r)
 	})
 }
 
-func WithAuthMiddlewares(ctx context.Context, next http.Handler) http.Handler {
+func WithAuthMiddlewares(configs *utils.Configs, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		middlewares := []Middleware{
 			DefaultMiddlewares,
 		}
-		middlewares = append(middlewares, func(ctx context.Context, next http.Handler) http.Handler {
-			return authMiddleware(ctx, next)
+		middlewares = append(middlewares, func(configs *utils.Configs, next http.Handler) http.Handler {
+			return authMiddleware(configs, next)
 		})
-		h := executeMiddlewares(ctx, middlewares, next)
+		h := executeMiddlewares(configs, middlewares, next)
 		h.ServeHTTP(w, r)
 	})
 }

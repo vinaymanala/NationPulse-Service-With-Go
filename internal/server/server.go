@@ -1,10 +1,10 @@
 package internals
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/nationpulse-bff/internal/middlewares"
+	"github.com/nationpulse-bff/internal/utils"
 )
 
 type ServerMux struct {
@@ -33,27 +33,27 @@ func groupRoutePrefix(prefix string, mux *http.ServeMux) http.Handler {
 	return http.StripPrefix(prefix, mux)
 }
 
-func NewServer(ctx context.Context) http.Handler {
-	rootMux := http.NewServeMux()
+func NewServer(configs *utils.Configs) http.Handler {
 
+	rootMux := http.NewServeMux()
 	newMux := &ServerMux{}
 	muxes := newMux.NewServerMuxes()
 
 	rootMux.Handle("/api/u/", groupRoutePrefix("/api/u", muxes.UserMux))
 	rootMux.Handle("/api/a/",
-		middlewares.WithAuthMiddlewares(ctx, groupRoutePrefix("/api/a", muxes.AdminMux)))
+		middlewares.WithAuthMiddlewares(configs, groupRoutePrefix("/api/a", muxes.AdminMux)))
 	rootMux.Handle("/api/dashboard/",
-		middlewares.DefaultMiddlewares(ctx, groupRoutePrefix("/api/dashboard", muxes.DashboardMux)))
+		middlewares.DefaultMiddlewares(configs, groupRoutePrefix("/api/dashboard", muxes.DashboardMux)))
 	rootMux.Handle("/api/health/",
-		middlewares.WithAuthMiddlewares(ctx, groupRoutePrefix("/api/health", muxes.HealthMux)))
+		middlewares.WithAuthMiddlewares(configs, groupRoutePrefix("/api/health", muxes.HealthMux)))
 	rootMux.Handle("/api/population/",
-		middlewares.WithAuthMiddlewares(ctx, groupRoutePrefix("/api/population", muxes.PopulationMux)))
+		middlewares.WithAuthMiddlewares(configs, groupRoutePrefix("/api/population", muxes.PopulationMux)))
 	rootMux.Handle("/api/economy/",
-		middlewares.WithAuthMiddlewares(ctx, groupRoutePrefix("/api/economy", muxes.EconomyMux)))
+		middlewares.WithAuthMiddlewares(configs, groupRoutePrefix("/api/economy", muxes.EconomyMux)))
 	rootMux.Handle("/api/growth/",
-		middlewares.WithAuthMiddlewares(ctx, groupRoutePrefix("/api/growth", muxes.GrowthMux)))
+		middlewares.WithAuthMiddlewares(configs, groupRoutePrefix("/api/growth", muxes.GrowthMux)))
 
-	addRoutes(ctx, muxes)
+	addRoutes(configs, muxes)
 
 	return rootMux
 }

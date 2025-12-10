@@ -9,6 +9,12 @@ import (
 
 type PgClient struct{ Client *sql.DB }
 
+type User struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Email string `json:"password"`
+}
+
 func NewPgClient() *PgClient {
 	//dbHost := os.Getenv("PG_DB_HOST")
 	//dbName := os.Getenv("PG_DB_NAME")
@@ -26,15 +32,36 @@ func NewPgClient() *PgClient {
 	}
 	fmt.Println("Connected to Postgres database successfully")
 
-	sqlStatement := `SELECT * FROM get_perfgrowthpopulation_dashboard(2025, 5)`
-	result, err := db.Query(sqlStatement)
-	if err != nil {
-		fmt.Printf("Error occured while querying database: %s", err)
-		panic(err)
-	}
+	//sqlStatement := `SELECT * FROM get_perfgrowthpopulation_dashboard(2025, 5)`
+	//result, err := db.Query(sqlStatement)
+	//if err != nil {
+	//	fmt.Printf("Error occured while querying database: %s", err)
+	//	panic(err)
+	//}
 	//defer result.Close()
-	fmt.Println("Query executed successfully\n")
-	fmt.Printf("%v", result)
+	//fmt.Println("Query executed successfully")
+	//fmt.Printf("%v", result)
 
 	return &PgClient{Client: db}
+}
+
+func (pg *PgClient) Close() {
+	pg.Client.Close()
+}
+
+func (pg *PgClient) GetUser(user *User) (*User, error) {
+	sqlStatement := `SELECT * FROM get_user($1, $2);`
+	row := pg.Client.QueryRow(sqlStatement, user.Name, user.Email)
+	//var name, email string
+	err := row.Scan(&user.ID, &user.Name, &user.Email)
+	fmt.Printf("Result: id: %s, user:%s, email:%s \n ", user.ID, user.Name, user.Email)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// user = &User{
+	// 	Name: result.Name,
+	// }
+	return user, nil
 }
