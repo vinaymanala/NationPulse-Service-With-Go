@@ -28,7 +28,7 @@ func main() {
 	}
 	// Create redis and postgres store in context
 	rds := store.NewRedis()
-	db := store.NewPgClient()
+	db := store.NewPgClient(ctx)
 
 	configs := &utils.Configs{
 		Db:      db,
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	defer rds.Client.Close()
-	defer db.Client.Close()
+	defer db.Client.Close(ctx)
 
 	// Start a HTTP server
 	srv := internals.NewServer(configs)

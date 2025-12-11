@@ -10,11 +10,17 @@ import (
 
 	"github.com/nationpulse-bff/internal/auth"
 	"github.com/nationpulse-bff/internal/store"
-	u "github.com/nationpulse-bff/internal/utils"
+	. "github.com/nationpulse-bff/internal/utils"
 )
 
 type UserService struct {
-	Configs *u.Configs
+	Configs *Configs
+}
+
+func NewUserService(configs *Configs) *UserService {
+	return &UserService{
+		Configs: configs,
+	}
 }
 
 func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
@@ -30,9 +36,9 @@ func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("User %s attempting to log in", in.Name)
-	// check in db if user exists
 
-	user, err := us.Configs.Db.GetUser(&store.User{Name: in.Name, Email: in.Email})
+	// check in db if user exist
+	user, err := us.Configs.Db.GetUser(us.Configs.Context, &store.User{Name: in.Name, Email: in.Email})
 	if err != nil {
 		fmt.Println("Error fetching user from DB:", err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -108,9 +114,4 @@ func (us *UserService) HandleRefreshToken(w http.ResponseWriter, r *http.Request
 	auth.SetAuthCookies(w, toks)
 	log.Println(http.StatusCreated, "{ok: true}")
 
-}
-
-func (us *UserService) getPermissions(w http.ResponseWriter, r *http.Request) {
-	// get the user specific permissions from db
-	w.Write([]byte("permissions"))
 }

@@ -4,12 +4,18 @@ import (
 	"log"
 	"net/http"
 
-	u "github.com/nationpulse-bff/internal/utils"
+	. "github.com/nationpulse-bff/internal/utils"
 )
 
 type EconomyService struct {
 	// Add any dependencies like database connections here
-	Configs *u.Configs
+	Configs *Configs
+}
+
+func NewEconomyService(configs *Configs) *EconomyService {
+	return &EconomyService{
+		Configs: configs,
+	}
 }
 
 func (es *EconomyService) GetEconomyGovernmentDataByCountryCode(w http.ResponseWriter, r *http.Request) {

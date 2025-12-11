@@ -4,12 +4,18 @@ import (
 	"log"
 	"net/http"
 
-	u "github.com/nationpulse-bff/internal/utils"
+	. "github.com/nationpulse-bff/internal/utils"
 )
 
 type HealthService struct {
 	// Add any dependencies like database connections here
-	Configs *u.Configs
+	Configs *Configs
+}
+
+func NewHealthService(configs *Configs) *HealthService {
+	return &HealthService{
+		Configs: configs,
+	}
 }
 
 func (hs *HealthService) GetHealthByCountryCode(w http.ResponseWriter, r *http.Request) {

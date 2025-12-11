@@ -11,7 +11,8 @@
 # Config files
 cookies.txt
 db.txt
-
+*.pgdata
+*redis.conf
 # Env files
 *.env
 

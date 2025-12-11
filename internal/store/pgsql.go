@@ -1,13 +1,13 @@
 package store
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
 )
 
-type PgClient struct{ Client *sql.DB }
+type PgClient struct{ Client *pgx.Conn }
 
 type User struct {
 	ID    string `json:"id"`
@@ -15,7 +15,7 @@ type User struct {
 	Email string `json:"password"`
 }
 
-func NewPgClient() *PgClient {
+func NewPgClient(ctx context.Context) *PgClient {
 	//dbHost := os.Getenv("PG_DB_HOST")
 	//dbName := os.Getenv("PG_DB_NAME")
 	//dbUser := os.Getenv("PG_DB_USER")
@@ -23,35 +23,22 @@ func NewPgClient() *PgClient {
 
 	//connStr := fmt.Sprintf("host=localhost post=5433 user=%s dbName=%s password=%s sslmode=disable", dbUser, dbName, dbPass)
 	connStr := "postgres://postgres:postgres@localhost:5432/nationPulseDB?sslmode=disable"
+	//connStr := "postgres://" + dbUser + ":" + dbPass + "@" + dbHost + ":5432/" + dbName + "?sslmode=disable"
 	fmt.Println(connStr)
-	db, err := sql.Open("postgres", connStr)
+	conn, err := pgx.Connect(ctx, connStr)
+	//fmt.Println(conn)
 	if err != nil {
-		defer db.Close()
+		defer conn.Close(ctx)
 		fmt.Printf("Error occured while connecting database: %s", err)
 		panic(err)
 	}
 	fmt.Println("Connected to Postgres database successfully")
-
-	//sqlStatement := `SELECT * FROM get_perfgrowthpopulation_dashboard(2025, 5)`
-	//result, err := db.Query(sqlStatement)
-	//if err != nil {
-	//	fmt.Printf("Error occured while querying database: %s", err)
-	//	panic(err)
-	//}
-	//defer result.Close()
-	//fmt.Println("Query executed successfully")
-	//fmt.Printf("%v", result)
-
-	return &PgClient{Client: db}
+	return &PgClient{Client: conn}
 }
 
-func (pg *PgClient) Close() {
-	pg.Client.Close()
-}
-
-func (pg *PgClient) GetUser(user *User) (*User, error) {
+func (pg *PgClient) GetUser(ctx context.Context, user *User) (*User, error) {
 	sqlStatement := `SELECT * FROM get_user($1, $2);`
-	row := pg.Client.QueryRow(sqlStatement, user.Name, user.Email)
+	row := pg.Client.QueryRow(ctx, sqlStatement, user.Name, user.Email)
 	//var name, email string
 	err := row.Scan(&user.ID, &user.Name, &user.Email)
 	fmt.Printf("Result: id: %s, user:%s, email:%s \n ", user.ID, user.Name, user.Email)
@@ -59,9 +46,5 @@ func (pg *PgClient) GetUser(user *User) (*User, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// user = &User{
-	// 	Name: result.Name,
-	// }
 	return user, nil
 }

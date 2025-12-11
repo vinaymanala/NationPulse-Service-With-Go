@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/nationpulse-bff/internal/handlers"
+	"github.com/nationpulse-bff/internal/repos"
 	"github.com/nationpulse-bff/internal/services"
 	"github.com/nationpulse-bff/internal/utils"
 )
@@ -26,35 +28,35 @@ func handleGrowthRoute(w http.ResponseWriter, r *http.Request) {
 
 func addRoutes(configs *utils.Configs, muxes *ServerMux) {
 
-	userService := &services.UserService{Configs: configs}
-	adminService := &services.AdminService{Configs: configs}
-	dashboardService := &services.DashboardService{Configs: configs}
-	populationService := &services.PopulationService{Configs: configs}
-	healthService := &services.HealthService{Configs: configs}
-	economyService := &services.EconomyService{Configs: configs}
-	growthService := &services.GrowthService{Configs: configs}
+	userService := services.NewUserService(configs)
+	adminService := services.NewAdminService(configs)
+	dashboardService := services.NewDashboardService(configs, repos.NewDashboardRepo(configs))
+	populationService := services.NewPopulationService(configs)
+	healthService := services.NewHealthService(configs)
+	economyService := services.NewEconomyService(configs)
+	growthService := services.NewGrowthService(configs)
 
-	muxes.UserMux.HandleFunc("POST /login", userService.HandleLogin)
-	muxes.UserMux.HandleFunc("POST /logout", userService.HandleLogout)
-	muxes.UserMux.HandleFunc("GET /token/refresh", userService.HandleRefreshToken)
+	uh := handlers.NewUserHandler(muxes.UserMux, userService)
+	uh.RegisterRoutes()
 	muxes.AdminMux.HandleFunc("GET /permissions", adminService.GetAllPermissions)
 
 	muxes.DashboardMux.HandleFunc("GET /", handleDashboardRoute)
-	muxes.DashboardMux.HandleFunc("GET /population/topCountriesByPopulation", dashboardService.GetTopCountriesByPopulation)
-	muxes.DashboardMux.HandleFunc("GET /api/health/topCountriesByHealth", dashboardService.GetTopCountriesByHealth)
-	muxes.DashboardMux.HandleFunc("GET /api/gdp/topCountriesByGDP", dashboardService.GetTopCountriesByGDP)
+	dh := handlers.NewDashboardHandler(muxes.DashboardMux, dashboardService)
+	dh.RegisterRoutes()
 
 	muxes.PopulationMux.HandleFunc("GET /", handlePopulationRoute)
-	muxes.PopulationMux.HandleFunc("GET /api/country/{countryCode}", populationService.GetPopulationByCountryCode)
+	ph := handlers.NewPopulationHandler(muxes.PopulationMux, populationService)
+	ph.RegisterRoutes()
 
 	muxes.HealthMux.HandleFunc("GET /", handleHealthRoute)
-	muxes.HealthMux.HandleFunc("GET /api/country/{countryCode}", healthService.GetHealthByCountryCode)
+	hh := handlers.NewHealthHandler(muxes.HealthMux, healthService)
+	hh.RegisterRoutes()
 
 	muxes.EconomyMux.HandleFunc("GET /", handleEconomyRoute)
-	muxes.EconomyMux.HandleFunc("GET /api/governmentdata/country/{countryCode}", economyService.GetEconomyGovernmentDataByCountryCode)
-	muxes.EconomyMux.HandleFunc("GET /api/gdp/country/{countryCode}", economyService.GetEconomyGDPByCountryCode)
+	eh := handlers.NewEconomyHandler(muxes.EconomyMux, economyService)
+	eh.RegisterRoutes()
 
 	muxes.GrowthMux.HandleFunc("GET /", handleGrowthRoute)
-	muxes.GrowthMux.HandleFunc("GET /api/gdpgrowth/country/{countryCode}", growthService.GetGDPGrowthByCountryCode)
-	muxes.GrowthMux.HandleFunc("GET /api/populationgrowth/country/{countryCode}", growthService.GetPopulationGrowthByCountryCode)
+	gh := handlers.NewGrowthHandler(muxes.GrowthMux, growthService)
+	gh.RegisterRoutes()
 }

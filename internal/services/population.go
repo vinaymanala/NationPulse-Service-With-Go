@@ -4,12 +4,18 @@ import (
 	"log"
 	"net/http"
 
-	u "github.com/nationpulse-bff/internal/utils"
+	. "github.com/nationpulse-bff/internal/utils"
 )
 
 type PopulationService struct {
 	// Add any dependencies like database connections here
-	Configs *u.Configs
+	Configs *Configs
+}
+
+func NewPopulationService(configs *Configs) *PopulationService {
+	return &PopulationService{
+		Configs: configs,
+	}
 }
 
 func (ps *PopulationService) GetPopulationByCountryCode(w http.ResponseWriter, r *http.Request) {

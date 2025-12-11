@@ -4,12 +4,18 @@ import (
 	"log"
 	"net/http"
 
-	u "github.com/nationpulse-bff/internal/utils"
+	. "github.com/nationpulse-bff/internal/utils"
 )
 
 type GrowthService struct {
 	// Add any dependencies like database connections here
-	Configs *u.Configs
+	Configs *Configs
+}
+
+func NewGrowthService(configs *Configs) *GrowthService {
+	return &GrowthService{
+		Configs: configs,
+	}
 }
 
 func (gs *GrowthService) GetGDPGrowthByCountryCode(w http.ResponseWriter, r *http.Request) {
