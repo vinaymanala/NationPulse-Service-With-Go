@@ -19,5 +19,5 @@ func NewPopulationHandler(mux *http.ServeMux, service *services.PopulationServic
 }
 
 func (ph *PopulationHandler) RegisterRoutes() {
-	ph.mux.HandleFunc("GET /api/country/{countryCode}", ph.service.GetPopulationByCountryCode)
+	ph.mux.HandleFunc("GET /country", ph.service.GetPopulationByCountryCode)
 }

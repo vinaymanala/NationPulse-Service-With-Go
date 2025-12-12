@@ -24,19 +24,16 @@ func (dr *DashboardRepo) GetTopCountriesByPopulationData(currentYear int, top_co
 		return nil, err
 	}
 
-	var topCountriesByPopulation []TopCountriesByPopulation
+	var topCountriesByPopulation []TopPopulationByCountries
 
 	for rows.Next() {
-		var topPopulatedCountry TopCountriesByPopulation
+		var topPopulatedCountry TopPopulationByCountries
 		if err := rows.Scan(
-			&topPopulatedCountry.ID,
 			&topPopulatedCountry.CountryName,
 			&topPopulatedCountry.CountryCode,
 			&topPopulatedCountry.Indicator,
-			&topPopulatedCountry.IndicatorCode,
 			&topPopulatedCountry.Year,
-			&topPopulatedCountry.Value,
-			&topPopulatedCountry.LastUpdated); err != nil {
+			&topPopulatedCountry.Value); err != nil {
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
@@ -54,23 +51,19 @@ func (dr *DashboardRepo) GetTopCountriesByHealthData() (any, error) {
 		return nil, err
 	}
 
-	var topCountriesByHealth []TopCountriesByHealth
+	var topCountriesByHealth []TopHealthCasesByCountries
 
 	for rows.Next() {
-		var topHealthDatByCountry TopCountriesByHealth
+		var topHealthDatByCountry TopHealthCasesByCountries
 		if err := rows.Scan(
-			&topHealthDatByCountry.ID,
 			&topHealthDatByCountry.CountryName,
 			&topHealthDatByCountry.CountryCode,
-			&topHealthDatByCountry.Indicator,
-			&topHealthDatByCountry.IndicatorCode,
-			&topHealthDatByCountry.Cause,
-			&topHealthDatByCountry.SexCode,
-			&topHealthDatByCountry.SexName,
-			&topHealthDatByCountry.UnitRange,
 			&topHealthDatByCountry.Year,
 			&topHealthDatByCountry.Value,
-			&topHealthDatByCountry.LastUpdated); err != nil {
+			&topHealthDatByCountry.SexName,
+			&topHealthDatByCountry.Cause,
+			&topHealthDatByCountry.UnitRange,
+		); err != nil {
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
@@ -81,37 +74,27 @@ func (dr *DashboardRepo) GetTopCountriesByHealthData() (any, error) {
 	return topCountriesByHealth, nil
 }
 
-// TODO: Stored function need to be added in db
-func (dr *DashboardRepo) GetTopCountriesByGDPData() (any, error) {
-	sqlStatement := `SELECT * FROM get_healthstatus_dashboard()`
-	rows, err := dr.configs.Db.Client.Query(dr.configs.Context, sqlStatement)
+func (dr *DashboardRepo) GetTopCountriesByGDPData(currentYear int, topNCountries int) (any, error) {
+	sqlStatement := `SELECT * FROM get_highest_gdp_countries_dashboard($1, $2)`
+	rows, err := dr.configs.Db.Client.Query(dr.configs.Context, sqlStatement, currentYear, topNCountries)
 	if err != nil {
 		return nil, err
 	}
 
-	var topCountriesByHealth []TopCountriesByHealth
+	var highestGDPCountries []HighestGDPCountries
 
 	for rows.Next() {
-		var topHealthDatByCountry TopCountriesByHealth
+		var highestGDPCountry HighestGDPCountries
 		if err := rows.Scan(
-			&topHealthDatByCountry.ID,
-			&topHealthDatByCountry.CountryName,
-			&topHealthDatByCountry.CountryCode,
-			&topHealthDatByCountry.Indicator,
-			&topHealthDatByCountry.IndicatorCode,
-			&topHealthDatByCountry.Cause,
-			&topHealthDatByCountry.SexCode,
-			&topHealthDatByCountry.SexName,
-			&topHealthDatByCountry.UnitRange,
-			&topHealthDatByCountry.Year,
-			&topHealthDatByCountry.Value,
-			&topHealthDatByCountry.LastUpdated); err != nil {
+			&highestGDPCountry.CountryCode,
+			&highestGDPCountry.Year,
+			&highestGDPCountry.Value); err != nil {
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
-		fmt.Println(topHealthDatByCountry)
-		topCountriesByHealth = append(topCountriesByHealth, topHealthDatByCountry)
+		fmt.Println(highestGDPCountry)
+		highestGDPCountries = append(highestGDPCountries, highestGDPCountry)
 	}
 	defer rows.Close()
-	return topCountriesByHealth, nil
+	return highestGDPCountries, nil
 }

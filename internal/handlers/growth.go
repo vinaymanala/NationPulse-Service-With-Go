@@ -19,6 +19,6 @@ func NewGrowthHandler(mux *http.ServeMux, service *services.GrowthService) *Grow
 }
 
 func (gh *GrowthHandler) RegisterRoutes() {
-	gh.mux.HandleFunc("GET /api/gdpgrowth/country/{countryCode}", gh.service.GetGDPGrowthByCountryCode)
-	gh.mux.HandleFunc("GET /api/populationgrowth/country/{countryCode}", gh.service.GetPopulationGrowthByCountryCode)
+	gh.mux.HandleFunc("GET /gdpgrowth/country", gh.service.GetGDPGrowthByCountryCode)
+	gh.mux.HandleFunc("GET /populationgrowth/country", gh.service.GetPopulationGrowthByCountryCode)
 }

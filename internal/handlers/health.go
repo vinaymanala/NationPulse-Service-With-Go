@@ -19,5 +19,5 @@ func NewHealthHandler(mux *http.ServeMux, service *services.HealthService) *Heal
 }
 
 func (hh *HealthHandler) RegisterRoutes() {
-	hh.mux.HandleFunc("GET /api/country/{countryCode}", hh.service.GetHealthByCountryCode)
+	hh.mux.HandleFunc("GET /country", hh.service.GetHealthByCountryCode)
 }

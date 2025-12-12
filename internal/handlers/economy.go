@@ -19,7 +19,7 @@ func NewEconomyHandler(mux *http.ServeMux, service *services.EconomyService) *Ec
 }
 
 func (eh *EconomyHandler) RegisterRoutes() {
-	eh.mux.HandleFunc("GET /api/governmentdata/country/{countryCode}", eh.service.GetEconomyGovernmentDataByCountryCode)
-	eh.mux.HandleFunc("GET /api/gdp/country/{countryCode}", eh.service.GetEconomyGDPByCountryCode)
+	eh.mux.HandleFunc("GET /governmentdata/country", eh.service.GetEconomyGovernmentDataByCountryCode)
+	eh.mux.HandleFunc("GET /gdp/country", eh.service.GetEconomyGDPByCountryCode)
 
 }

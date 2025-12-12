@@ -13,6 +13,7 @@ cookies.txt
 db.txt
 *.pgdata
 *redis.conf
+*PASTEBIN.md
 # Env files
 *.env
 
