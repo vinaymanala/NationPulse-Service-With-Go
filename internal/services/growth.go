@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -27,24 +26,21 @@ func (gs *GrowthService) GetGDPGrowthByCountryCode(w http.ResponseWriter, r *htt
 	log.Printf("fetch Gdp growth of %s\n", countryCode)
 	data, err := gs.repo.GetGDPGrowthData(countryCode)
 	if err != nil {
-		http.Error(w, "failed", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	w.Write([]byte("fetch gfp growth"))
+
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }
 
 func (gs *GrowthService) GetPopulationGrowthByCountryCode(w http.ResponseWriter, r *http.Request) {
 	countryCode := r.URL.Query().Get("countryCode")
 	data, err := gs.repo.GetPopulationGrowth(countryCode)
 	if err != nil {
-		http.Error(w, "failed", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	log.Printf("fetch population growth of %s\n", countryCode)
-	w.Write([]byte("fetch population growth"))
-
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }

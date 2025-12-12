@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -27,12 +26,11 @@ func (es *EconomyService) GetEconomyGovernmentDataByCountryCode(w http.ResponseW
 	log.Printf("Economy GovermentData of %s\n", countryCode)
 	data, err := es.repo.GetGovernmentData(countryCode)
 	if err != nil {
-		http.Error(w, "failed", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	w.Write([]byte("economy fetch"))
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }
 
 func (es *EconomyService) GetEconomyGDPByCountryCode(w http.ResponseWriter, r *http.Request) {
@@ -40,10 +38,9 @@ func (es *EconomyService) GetEconomyGDPByCountryCode(w http.ResponseWriter, r *h
 	log.Printf("Economy GDP of %s\n", countryCode)
 	data, err := es.repo.GetGDPData(countryCode)
 	if err != nil {
-		http.Error(w, "failed", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	w.Write([]byte("economy gdp fetch"))
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }

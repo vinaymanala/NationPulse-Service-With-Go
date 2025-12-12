@@ -13,6 +13,11 @@ type Configs struct {
 	Context context.Context
 }
 
+type ApiResponse struct {
+	IsSuccess bool `json:"isSuccess"`
+	Data      any  `json:"data"`
+	Error     any  `json:"error"`
+}
 type TopPopulationByCountries struct {
 	CountryCode string  `json:"country_code"`
 	CountryName string  `json:"country_name"`

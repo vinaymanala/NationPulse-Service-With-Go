@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -27,10 +26,9 @@ func (hs *HealthService) GetHealthByCountryCode(w http.ResponseWriter, r *http.R
 	log.Printf("fetch health of %s\n", countryCode)
 	data, err := hs.repo.GetHealthData(countryCode)
 	if err != nil {
-		http.Error(w, "failed", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	w.Write([]byte("health fetched"))
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }

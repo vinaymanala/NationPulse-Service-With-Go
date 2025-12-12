@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -28,9 +27,8 @@ func (ps *PopulationService) GetPopulationByCountryCode(w http.ResponseWriter, r
 	data, err := ps.repo.GetPopulationByCountryData(countryCode)
 	if err != nil {
 		http.Error(w, "failed", http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	w.Write([]byte("Population fetched.."))
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }

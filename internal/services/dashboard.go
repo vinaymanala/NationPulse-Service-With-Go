@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 
@@ -26,34 +25,31 @@ func (ds *DashboardService) GetTopCountriesByPopulation(w http.ResponseWriter, r
 	log.Println("fetch top 5 populated countries")
 	data, err := ds.repo.GetTopCountriesByPopulationData(2025, 5)
 	if err != nil {
-		http.Error(w, "failed", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	w.Write([]byte("Top 5 countries by population"))
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }
 
 func (ds *DashboardService) GetTopCountriesByHealth(w http.ResponseWriter, r *http.Request) {
 	log.Println("fetch top 5 health related cases in countries")
 	data, err := ds.repo.GetTopCountriesByHealthData()
 	if err != nil {
-		http.Error(w, "failed", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	w.Write([]byte("Top 5 countries with Health cases"))
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }
 
 func (ds *DashboardService) GetTopCountriesByGDP(w http.ResponseWriter, r *http.Request) {
 	log.Println("fetch top 5 gdp countries")
 	data, err := ds.repo.GetTopCountriesByGDPData(2025, 5)
 	if err != nil {
-		http.Error(w, "failed", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(data)
-	w.Write([]byte("Top 5 countries with highest GDP"))
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }
