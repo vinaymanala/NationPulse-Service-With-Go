@@ -15,6 +15,7 @@ type ServerMux struct {
 	HealthMux     *http.ServeMux
 	EconomyMux    *http.ServeMux
 	GrowthMux     *http.ServeMux
+	UtilsMux      *http.ServeMux
 }
 
 func (sm *ServerMux) NewServerMuxes() *ServerMux {
@@ -26,6 +27,7 @@ func (sm *ServerMux) NewServerMuxes() *ServerMux {
 		HealthMux:     http.NewServeMux(),
 		EconomyMux:    http.NewServeMux(),
 		GrowthMux:     http.NewServeMux(),
+		UtilsMux:      http.NewServeMux(),
 	}
 }
 
@@ -40,6 +42,8 @@ func NewServer(configs *utils.Configs) http.Handler {
 	muxes := newMux.NewServerMuxes()
 
 	rootMux.Handle("/api/u/", groupRoutePrefix("/api/u", muxes.UserMux))
+	rootMux.Handle("/api/uu/",
+		middlewares.WithAuthMiddlewares(configs, groupRoutePrefix("/api/uu", muxes.UtilsMux)))
 	rootMux.Handle("/api/a/",
 		middlewares.WithAuthMiddlewares(configs, groupRoutePrefix("/api/a", muxes.AdminMux)))
 	rootMux.Handle("/api/dashboard/",

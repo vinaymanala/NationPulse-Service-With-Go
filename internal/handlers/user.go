@@ -22,6 +22,5 @@ func (uh *UserHandler) RegisterRoutes() {
 	uh.mux.HandleFunc("POST /login", uh.service.HandleLogin)
 	uh.mux.HandleFunc("POST /logout", uh.service.HandleLogout)
 	uh.mux.HandleFunc("GET /token/refresh", uh.service.HandleRefreshToken)
-	//uh.mux.HandleFunc("GET /permissions", service.GetAllPermissions)
 
 }

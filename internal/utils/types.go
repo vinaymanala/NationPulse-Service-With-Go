@@ -92,3 +92,17 @@ type GrowthData struct {
 	Value         float64   `json:"value"`
 	LastUpdated   time.Time `json:"last_updated"`
 }
+
+type UserPermissions struct {
+	Name            string `json:"username"`
+	Email           string `json:"email"`
+	RoleId          int    `json:"role_id"`
+	RoleName        string `json:"role_name"`
+	RoleDescription string `json:"role_description"`
+	ModuleID        int    `json:"modul_id"`
+	ModuleName      string `json:"module_name"`
+	ModuleValue     int    `json:"module_value"`
+	PermissionID    int    `json:"permission_id"`
+	PermissionName  string `json:"permission_name"`
+	PermissionValue int    `json:"permission_value"`
+}

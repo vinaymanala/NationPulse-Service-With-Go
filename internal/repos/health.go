@@ -17,14 +17,22 @@ func NewHealthRepo(configs *Configs) *HealthRepo {
 	}
 }
 
+var healthID = "health:"
+
 func (hr *HealthRepo) GetHealthData(countryCode string) (any, error) {
+	var healthData []HealthData
+	data, err := GetDataFromCache(hr.Configs, healthID+"country", &healthData)
+	if err != nil {
+		log.Println("Cache Get Failed. Trying DB.")
+	} else {
+		return *data, nil
+	}
 	sqlStatement := `SELECT * FROM get_healthstatus_by_country_code($1)`
 	rows, err := hr.Configs.Db.Client.Query(hr.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
 	}
 
-	var healthData []HealthData
 	for rows.Next() {
 		var healthDataByCountry HealthData
 
@@ -47,6 +55,9 @@ func (hr *HealthRepo) GetHealthData(countryCode string) (any, error) {
 		}
 		fmt.Println(healthDataByCountry)
 		healthData = append(healthData, healthDataByCountry)
+	}
+	if err := hr.Configs.Cache.SetData(hr.Configs.Context, healthID+"country", healthData); err != nil {
+		log.Println("Error Set Cache Data", err)
 	}
 	defer rows.Close()
 	return healthData, nil

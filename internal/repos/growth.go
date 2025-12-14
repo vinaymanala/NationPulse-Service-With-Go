@@ -17,14 +17,22 @@ func NewGrowthRepo(configs *Configs) *GrowthRepo {
 	}
 }
 
+var growthID = "growth:"
+
 func (gr *GrowthRepo) GetGDPGrowthData(countryCode string) (any, error) {
+	var gdpGrowthData []GrowthData
+	data, err := GetDataFromCache(gr.Configs, growthID+"GDP", &gdpGrowthData)
+	if err != nil {
+		log.Println("Cache Get Failed. Trying DB.")
+	} else {
+		return *data, nil
+	}
 	sqlStatement := `SELECT * FROM get_perfgrowthgdpds_by_country_code($1)`
 	rows, err := gr.Configs.Db.Client.Query(gr.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
 	}
 
-	var gdpGrowthData []GrowthData
 	for rows.Next() {
 		var growthgdpDataByCountry GrowthData
 
@@ -44,18 +52,25 @@ func (gr *GrowthRepo) GetGDPGrowthData(countryCode string) (any, error) {
 		fmt.Println(growthgdpDataByCountry)
 		gdpGrowthData = append(gdpGrowthData, growthgdpDataByCountry)
 	}
+	gr.Configs.Cache.SetData(gr.Configs.Context, growthID+"GDP", gdpGrowthData)
 	defer rows.Close()
 	return gdpGrowthData, nil
 }
 
 func (gr *GrowthRepo) GetPopulationGrowth(countryCode string) (any, error) {
+	var populationGrowthData []GrowthData
+	data, err := GetDataFromCache(gr.Configs, growthID+"population", &populationGrowthData)
+	if err != nil {
+		log.Println("Cache Get Failed. Trying DB.")
+	} else {
+		return *data, nil
+	}
 	sqlStatement := `SELECT * FROM get_perfgrowthpopulation_by_country_code($1)`
 	rows, err := gr.Configs.Db.Client.Query(gr.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
 	}
 
-	var populationGrowthData []GrowthData
 	for rows.Next() {
 		var populationGrowthByCountry GrowthData
 
@@ -74,6 +89,9 @@ func (gr *GrowthRepo) GetPopulationGrowth(countryCode string) (any, error) {
 		}
 		fmt.Println(populationGrowthByCountry)
 		populationGrowthData = append(populationGrowthData, populationGrowthByCountry)
+	}
+	if err := gr.Configs.Cache.SetData(gr.Configs.Context, growthID+"population", populationGrowthData); err != nil {
+		log.Println("Error Set Cache Data", err)
 	}
 	defer rows.Close()
 	return populationGrowthData, nil

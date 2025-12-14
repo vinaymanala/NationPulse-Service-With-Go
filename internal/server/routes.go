@@ -28,8 +28,9 @@ func handleGrowthRoute(w http.ResponseWriter, r *http.Request) {
 
 func addRoutes(configs *utils.Configs, muxes *ServerMux) {
 
-	userService := services.NewUserService(configs)
-	adminService := services.NewAdminService(configs)
+	userService := services.NewUserService(configs, repos.NewUserRepo(configs))
+	utilsService := services.NewUtilsService(configs, repos.NewUtilsRepo(configs))
+	//adminService := services.NewAdminService(configs)
 	dashboardService := services.NewDashboardService(configs, repos.NewDashboardRepo(configs))
 	populationService := services.NewPopulationService(configs, repos.NewPopulationRepo(configs))
 	healthService := services.NewHealthService(configs, repos.NewHealthRepo(configs))
@@ -38,7 +39,10 @@ func addRoutes(configs *utils.Configs, muxes *ServerMux) {
 
 	uh := handlers.NewUserHandler(muxes.UserMux, userService)
 	uh.RegisterRoutes()
-	muxes.AdminMux.HandleFunc("GET /permissions", adminService.GetAllPermissions)
+	//muxes.AdminMux.HandleFunc("GET /permissions", adminService.GetAllPermissions)
+
+	utilsS := handlers.NewUtilsHandler(muxes.UtilsMux, utilsService)
+	utilsS.RegisterRoutes()
 
 	muxes.DashboardMux.HandleFunc("GET /", handleDashboardRoute)
 	dh := handlers.NewDashboardHandler(muxes.DashboardMux, dashboardService)

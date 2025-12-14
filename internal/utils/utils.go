@@ -2,6 +2,8 @@ package utils
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -16,4 +18,25 @@ func WriteJSON(w http.ResponseWriter, status int, data any, success bool, err an
 	}
 	log.Printf("Message: %s, isSuccess: %t, Error:%v \n", data, success, err)
 	return json.NewEncoder(w).Encode(response)
+}
+
+func GetUserDetailsFromCache(r *http.Request, configs *Configs) {
+	fmt.Printf("Form Details: %s\n", r.Form.Get("userID"))
+}
+
+func GetDataFromCache[T any](configs *Configs, key string, mappedStruct T) (*T, error) {
+	//var zero T
+	data, err := configs.Cache.GetData(configs.Context, key)
+	fmt.Println("CACHE DATA:", data, err)
+	if err != nil {
+		log.Printf("Error fetching data from cache %s\n", err)
+		return nil, errors.New("error fetching data from cache")
+	}
+	if err := json.Unmarshal([]byte(data), &mappedStruct); err != nil {
+		log.Println("Error unmarshalling data from cache.")
+		return nil, errors.New("error unmarshalling data from cache")
+	}
+	fmt.Println("Fetched Data from Cache!!")
+	return &mappedStruct, nil
+
 }

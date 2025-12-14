@@ -7,6 +7,8 @@ import (
 	. "github.com/nationpulse-bff/internal/utils"
 )
 
+var populationID = "population:"
+
 type PopulationRepo struct {
 	Configs *Configs
 }
@@ -18,13 +20,18 @@ func NewPopulationRepo(configs *Configs) *PopulationRepo {
 }
 
 func (pr *PopulationRepo) GetPopulationByCountryData(countryCode string) (any, error) {
+	var populationByCountries []PopulationData
+	data, err := GetDataFromCache(pr.Configs, populationID+"country", &populationByCountries)
+	if err != nil {
+		log.Println("Cache Get Failed. Trying DB.")
+	} else {
+		return *data, nil
+	}
 	sqlStatement := `SELECT * FROM get_population_by_country_code($1)`
 	rows, err := pr.Configs.Db.Client.Query(pr.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
 	}
-
-	var populationByCountries []PopulationData
 
 	for rows.Next() {
 		var populationByCountry PopulationData
@@ -46,6 +53,9 @@ func (pr *PopulationRepo) GetPopulationByCountryData(countryCode string) (any, e
 		}
 		fmt.Println(populationByCountry)
 		populationByCountries = append(populationByCountries, populationByCountry)
+	}
+	if err := pr.Configs.Cache.SetData(pr.Configs.Context, populationID+"country", populationByCountries); err != nil {
+		log.Println("Error Set Cache Data", err)
 	}
 	defer rows.Close()
 	return populationByCountries, nil

@@ -9,17 +9,20 @@ import (
 	"net/http"
 
 	"github.com/nationpulse-bff/internal/auth"
+	"github.com/nationpulse-bff/internal/repos"
 	"github.com/nationpulse-bff/internal/store"
 	. "github.com/nationpulse-bff/internal/utils"
 )
 
 type UserService struct {
 	Configs *Configs
+	repo    *repos.UserRepo
 }
 
-func NewUserService(configs *Configs) *UserService {
+func NewUserService(configs *Configs, repo *repos.UserRepo) *UserService {
 	return &UserService{
 		Configs: configs,
+		repo:    repo,
 	}
 }
 
@@ -39,7 +42,7 @@ func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	log.Printf("User %s attempting to log in", in.Name)
 
 	// check in db if user exist
-	user, err := us.Configs.Db.GetUser(us.Configs.Context, &store.User{Name: in.Name, Email: in.Email})
+	user, err := us.repo.GetUserDetails(&store.User{Name: in.Name, Email: in.Email})
 	if err != nil {
 		fmt.Println("Error fetching user from DB:", err)
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
