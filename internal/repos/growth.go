@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -32,6 +33,7 @@ func (gr *GrowthRepo) GetGDPGrowthData(countryCode string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var growthgdpDataByCountry GrowthData
@@ -52,8 +54,15 @@ func (gr *GrowthRepo) GetGDPGrowthData(countryCode string) (any, error) {
 		fmt.Println(growthgdpDataByCountry)
 		gdpGrowthData = append(gdpGrowthData, growthgdpDataByCountry)
 	}
-	gr.Configs.Cache.SetData(gr.Configs.Context, growthID+"GDP", gdpGrowthData)
-	defer rows.Close()
+
+	if gdpGrowthData == nil {
+		return gdpGrowthData, nil
+	}
+	marshalledData, err := json.Marshal(gdpGrowthData)
+	if err != nil {
+		log.Println("Error marshalling data", err)
+	}
+	gr.Configs.Cache.SetData(gr.Configs.Context, growthID+"GDP", marshalledData)
 	return gdpGrowthData, nil
 }
 
@@ -70,6 +79,7 @@ func (gr *GrowthRepo) GetPopulationGrowth(countryCode string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var populationGrowthByCountry GrowthData
@@ -90,10 +100,16 @@ func (gr *GrowthRepo) GetPopulationGrowth(countryCode string) (any, error) {
 		fmt.Println(populationGrowthByCountry)
 		populationGrowthData = append(populationGrowthData, populationGrowthByCountry)
 	}
-	if err := gr.Configs.Cache.SetData(gr.Configs.Context, growthID+"population", populationGrowthData); err != nil {
+	if populationGrowthData == nil {
+		return populationGrowthData, nil
+	}
+	marshalledData, err := json.Marshal(populationGrowthData)
+	if err != nil {
+		log.Println("Error marshalling data", err)
+	}
+	if err := gr.Configs.Cache.SetData(gr.Configs.Context, growthID+"population", marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
-	defer rows.Close()
 	return populationGrowthData, nil
 
 }

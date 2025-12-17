@@ -68,7 +68,7 @@ func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auth.SetAuthCookies(w, tokens)
-	WriteJSON(w, http.StatusOK, "Login successfull", true, nil)
+	WriteJSON(w, http.StatusOK, user, true, nil)
 }
 
 func (us *UserService) HandleLogout(w http.ResponseWriter, r *http.Request) {

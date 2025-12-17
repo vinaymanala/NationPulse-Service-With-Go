@@ -37,7 +37,7 @@ func (r *Redis) GetUserByJTI(ctx context.Context, key string) (string, error) {
 }
 
 func (r *Redis) SetData(ctx context.Context, key string, value interface{}) error {
-	log.Println("Set cached data", key, value)
+	log.Println("Set cached data")
 	return r.Client.Set(ctx, key, value, ttl).Err()
 }
 

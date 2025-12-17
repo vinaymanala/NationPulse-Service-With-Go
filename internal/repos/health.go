@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -32,6 +33,7 @@ func (hr *HealthRepo) GetHealthData(countryCode string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var healthDataByCountry HealthData
@@ -56,9 +58,15 @@ func (hr *HealthRepo) GetHealthData(countryCode string) (any, error) {
 		fmt.Println(healthDataByCountry)
 		healthData = append(healthData, healthDataByCountry)
 	}
-	if err := hr.Configs.Cache.SetData(hr.Configs.Context, healthID+"country", healthData); err != nil {
+	if healthData == nil {
+		return healthData, nil
+	}
+	marshalledData, err := json.Marshal(healthData)
+	if err != nil {
+		log.Println("Error marshalling data", marshalledData)
+	}
+	if err := hr.Configs.Cache.SetData(hr.Configs.Context, healthID+"country", marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
-	defer rows.Close()
 	return healthData, nil
 }

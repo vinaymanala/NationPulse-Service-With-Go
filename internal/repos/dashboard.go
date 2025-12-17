@@ -34,13 +34,15 @@ func (dr *DashboardRepo) GetTopCountriesByPopulationData(currentYear int, top_co
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var topPopulatedCountry TopPopulationByCountries
 		if err := rows.Scan(
-			&topPopulatedCountry.CountryName,
 			&topPopulatedCountry.CountryCode,
+			&topPopulatedCountry.CountryName,
 			&topPopulatedCountry.Indicator,
+			&topPopulatedCountry.IndicatorCode,
 			&topPopulatedCountry.Year,
 			&topPopulatedCountry.Value); err != nil {
 			log.Fatalf("Error scanning a row: %v\n", err)
@@ -49,7 +51,9 @@ func (dr *DashboardRepo) GetTopCountriesByPopulationData(currentYear int, top_co
 		//fmt.Println(topPopulatedCountry)
 		topCountriesByPopulation = append(topCountriesByPopulation, topPopulatedCountry)
 	}
-	defer rows.Close()
+	if topCountriesByPopulation == nil {
+		return topCountriesByPopulation, nil
+	}
 	marshalledData, err := json.Marshal(topCountriesByPopulation)
 	if err != nil {
 		log.Println("Error marshaling data to cache")
@@ -62,24 +66,26 @@ func (dr *DashboardRepo) GetTopCountriesByPopulationData(currentYear int, top_co
 }
 
 func (dr *DashboardRepo) GetTopCountriesByHealthData() (any, error) {
-	if data, err := dr.Configs.Cache.GetData(dr.Configs.Context, dashboardID+"healthdata"); err != nil {
-		log.Printf("Error fetching data from cache. Trying DB...\n")
+	var topCountriesByHealth []TopHealthCasesByCountries
+	if data, err := GetDataFromCache(dr.Configs, dashboardID+"health", &topCountriesByHealth); err != nil {
+		log.Println("Cache Get Failed. Trying DB.")
 	} else {
-		return data, nil
+		return *data, nil
 	}
 	sqlStatement := `SELECT * FROM get_healthstatus_dashboard()`
 	rows, err := dr.Configs.Db.Client.Query(dr.Configs.Context, sqlStatement)
 	if err != nil {
 		return nil, err
 	}
-
-	var topCountriesByHealth []TopHealthCasesByCountries
+	defer rows.Close()
 
 	for rows.Next() {
 		var topHealthDatByCountry TopHealthCasesByCountries
 		if err := rows.Scan(
-			&topHealthDatByCountry.CountryName,
 			&topHealthDatByCountry.CountryCode,
+			&topHealthDatByCountry.CountryName,
+			&topHealthDatByCountry.Indicator,
+			&topHealthDatByCountry.IndicatorCode,
 			&topHealthDatByCountry.Year,
 			&topHealthDatByCountry.Value,
 			&topHealthDatByCountry.SexName,
@@ -92,32 +98,41 @@ func (dr *DashboardRepo) GetTopCountriesByHealthData() (any, error) {
 		//fmt.Println(topHealthDatByCountry)
 		topCountriesByHealth = append(topCountriesByHealth, topHealthDatByCountry)
 	}
-	if err := dr.Configs.Cache.SetData(dr.Configs.Context, dashboardID+"healthdata", topCountriesByHealth); err != nil {
+	if topCountriesByHealth == nil {
+		return topCountriesByHealth, nil
+	}
+	marshalledData, err := json.Marshal(topCountriesByHealth)
+	if err != nil {
+		log.Println("Error marshalling data", err)
+	}
+	if err := dr.Configs.Cache.SetData(dr.Configs.Context, dashboardID+"healthdata", marshalledData); err != nil {
 		log.Println("Error Set Cache data", err)
 	}
-	defer rows.Close()
 	return topCountriesByHealth, nil
 }
 
 func (dr *DashboardRepo) GetTopCountriesByGDPData(currentYear int, topNCountries int) (any, error) {
-	if data, err := dr.Configs.Cache.GetData(dr.Configs.Context, dashboardID+"GDPdata"); err != nil {
-		log.Printf("Error fetching data from cache. Trying DB...\n")
+	var highestGDPCountries []HighestGDPCountries
+	if data, err := GetDataFromCache(dr.Configs, dashboardID+"GDPdata", &highestGDPCountries); err != nil {
+		log.Println("Cache Get Failed. Trying DB.")
 	} else {
-		return data, nil
+		return *data, nil
 	}
 
-	sqlStatement := `SELECT * FROM get_highest_gdp_countries_dashboard($1, $2)`
+	sqlStatement := `SELECT * FROM get_highest_gdppercapita_countries_dashboard($1, $2)`
 	rows, err := dr.Configs.Db.Client.Query(dr.Configs.Context, sqlStatement, currentYear, topNCountries)
 	if err != nil {
 		return nil, err
 	}
-
-	var highestGDPCountries []HighestGDPCountries
+	defer rows.Close()
 
 	for rows.Next() {
 		var highestGDPCountry HighestGDPCountries
 		if err := rows.Scan(
 			&highestGDPCountry.CountryCode,
+			&highestGDPCountry.CountryName,
+			&highestGDPCountry.Indicator,
+			&highestGDPCountry.IndicatorCode,
 			&highestGDPCountry.Year,
 			&highestGDPCountry.Value); err != nil {
 			log.Fatalf("Error scanning a row: %v\n", err)
@@ -126,8 +141,15 @@ func (dr *DashboardRepo) GetTopCountriesByGDPData(currentYear int, topNCountries
 		fmt.Println(highestGDPCountry)
 		highestGDPCountries = append(highestGDPCountries, highestGDPCountry)
 	}
-	defer rows.Close()
-	if err := dr.Configs.Cache.SetData(dr.Configs.Context, dashboardID+"GDPdata", highestGDPCountries); err != nil {
+
+	if highestGDPCountries == nil {
+		return highestGDPCountries, nil
+	}
+	marshalledData, err := json.Marshal(highestGDPCountries)
+	if err != nil {
+		log.Println("Error marshalling data", err)
+	}
+	if err := dr.Configs.Cache.SetData(dr.Configs.Context, dashboardID+"GDPdata", marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
 	return highestGDPCountries, nil

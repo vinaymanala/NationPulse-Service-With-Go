@@ -16,7 +16,7 @@ func WriteJSON(w http.ResponseWriter, status int, data any, success bool, err an
 		IsSuccess: success,
 		Error:     err,
 	}
-	log.Printf("Message: %s, isSuccess: %t, Error:%v \n", data, success, err)
+	log.Printf("Message: %s, isSuccess: %t, Error:%v \n", "Data received", success, err)
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -36,6 +36,8 @@ func GetDataFromCache[T any](configs *Configs, key string, mappedStruct T) (*T, 
 		log.Println("Error unmarshalling data from cache.")
 		return nil, errors.New("error unmarshalling data from cache")
 	}
+	fmt.Println("==================================")
+	// fmt.Println("Unmarshal data", &mappedStruct)
 	fmt.Println("Fetched Data from Cache!!")
 	return &mappedStruct, nil
 

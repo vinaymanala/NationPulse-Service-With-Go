@@ -32,12 +32,13 @@ func (ur *UserRepo) GetUserDetails(user *store.User) (*store.User, error) {
 }
 
 func (ur *UserRepo) GetPermissions(user *store.User) (any, error) {
+	var userPermissions []UserPermissions
 	sqlStatement := `SELECT * FROM get_user_permissions($1);`
 	rows, err := ur.Configs.Db.Client.Query(ur.Configs.Context, sqlStatement, user.ID)
 	if err != nil {
 		return nil, err
 	}
-	var userPermissions []UserPermissions
+	defer rows.Close()
 
 	for rows.Next() {
 		var userPermission UserPermissions
@@ -65,6 +66,5 @@ func (ur *UserRepo) GetPermissions(user *store.User) (any, error) {
 		permissions = append(permissions, permission.PermissionValue)
 	}
 	fmt.Println("PERMISSIONS", permissions)
-	defer rows.Close()
 	return permissions, nil
 }

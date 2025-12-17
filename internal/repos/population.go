@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -32,6 +33,7 @@ func (pr *PopulationRepo) GetPopulationByCountryData(countryCode string) (any, e
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var populationByCountry PopulationData
@@ -54,9 +56,15 @@ func (pr *PopulationRepo) GetPopulationByCountryData(countryCode string) (any, e
 		fmt.Println(populationByCountry)
 		populationByCountries = append(populationByCountries, populationByCountry)
 	}
-	if err := pr.Configs.Cache.SetData(pr.Configs.Context, populationID+"country", populationByCountries); err != nil {
+	if populationByCountries == nil {
+		return populationByCountries, nil
+	}
+	marshalledData, err := json.Marshal(populationByCountries)
+	if err != nil {
+		log.Println("Error marshalling data", marshalledData)
+	}
+	if err := pr.Configs.Cache.SetData(pr.Configs.Context, populationID+"country", marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
-	defer rows.Close()
 	return populationByCountries, nil
 }

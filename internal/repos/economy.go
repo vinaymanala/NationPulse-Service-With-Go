@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -32,6 +33,7 @@ func (er *EconomyRepo) GetGovernmentData(countryCode string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var economygovernmentByCountry EconomyData
@@ -52,10 +54,16 @@ func (er *EconomyRepo) GetGovernmentData(countryCode string) (any, error) {
 		fmt.Println(economygovernmentByCountry)
 		governmentData = append(governmentData, economygovernmentByCountry)
 	}
-	if err := er.Configs.Cache.SetData(er.Configs.Context, economyId+"government", governmentData); err != nil {
+	if governmentData == nil {
+		return governmentData, nil
+	}
+	marshalledData, err := json.Marshal(governmentData)
+	if err != nil {
+		log.Println("Error marshalling data", err)
+	}
+	if err := er.Configs.Cache.SetData(er.Configs.Context, economyId+"government", marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
-	defer rows.Close()
 	return governmentData, nil
 }
 
@@ -72,6 +80,7 @@ func (er *EconomyRepo) GetGDPData(countryCode string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var economyGDPByCountry EconomyData
@@ -92,10 +101,16 @@ func (er *EconomyRepo) GetGDPData(countryCode string) (any, error) {
 		fmt.Println(economyGDPByCountry)
 		gdpData = append(gdpData, economyGDPByCountry)
 	}
-	if err := er.Configs.Cache.SetData(er.Configs.Context, economyId+"GDP", gdpData); err != nil {
+	if gdpData == nil {
+		return gdpData, nil
+	}
+	marshalledData, err := json.Marshal(gdpData)
+	if err != nil {
+		log.Println("Error  marshalling data", err)
+	}
+	if err := er.Configs.Cache.SetData(er.Configs.Context, economyId+"GDP", marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
-	defer rows.Close()
 	return gdpData, nil
 
 }

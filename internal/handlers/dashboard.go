@@ -22,8 +22,8 @@ func NewDashboardHandler(mux *http.ServeMux, service *services.DashboardService)
 func (dh *DashboardHandler) RegisterRoutes() {
 	// Register dashboard-related routes here
 	//dh.mux.HandleFunc("GET /", handleDashboardRoute)
-	dh.mux.HandleFunc("GET /population/top", dh.service.GetTopCountriesByPopulation)
-	dh.mux.HandleFunc("GET /health/top", dh.service.GetTopCountriesByHealth)
-	dh.mux.HandleFunc("GET /gdp/top", dh.service.GetTopCountriesByGDP)
+	dh.mux.HandleFunc("GET /population", dh.service.GetTopCountriesByPopulation)
+	dh.mux.HandleFunc("GET /health", dh.service.GetTopCountriesByHealth)
+	dh.mux.HandleFunc("GET /gdp", dh.service.GetTopCountriesByGDP)
 
 }

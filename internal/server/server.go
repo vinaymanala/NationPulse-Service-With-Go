@@ -41,7 +41,8 @@ func NewServer(configs *utils.Configs) http.Handler {
 	newMux := &ServerMux{}
 	muxes := newMux.NewServerMuxes()
 
-	rootMux.Handle("/api/u/", groupRoutePrefix("/api/u", muxes.UserMux))
+	rootMux.Handle("/api/u/",
+		middlewares.DefaultMiddlewares(configs, groupRoutePrefix("/api/u", muxes.UserMux)))
 	rootMux.Handle("/api/uu/",
 		middlewares.WithAuthMiddlewares(configs, groupRoutePrefix("/api/uu", muxes.UtilsMux)))
 	rootMux.Handle("/api/a/",

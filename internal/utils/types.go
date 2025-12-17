@@ -19,21 +19,24 @@ type ApiResponse struct {
 	Error     any  `json:"error"`
 }
 type TopPopulationByCountries struct {
-	CountryCode string  `json:"country_code"`
-	CountryName string  `json:"country_name"`
-	Indicator   string  `json:"indicator"`
-	Year        int     `json:"year"`
-	Value       float64 `json:"value"`
+	CountryCode   string  `json:"country_code"`
+	CountryName   string  `json:"country_name"`
+	Indicator     string  `json:"indicator"`
+	IndicatorCode string  `json:"indicator_code"`
+	Year          int     `json:"year"`
+	Value         float64 `json:"value"`
 }
 
 type TopHealthCasesByCountries struct {
-	CountryCode string  `json:"country_code"`
-	CountryName string  `json:"country_name"`
-	Year        int     `json:"year"`
-	Value       float64 `json:"value"`
-	SexName     string  `json:"sex_name"`
-	Cause       string  `json:"cause"`
-	UnitRange   string  `json:"unitRange"`
+	CountryCode   string  `json:"country_code"`
+	CountryName   string  `json:"country_name"`
+	Indicator     string  `json:"indicator"`
+	IndicatorCode string  `json:"indicator_code"`
+	Year          int     `json:"year"`
+	Value         float64 `json:"value"`
+	SexName       string  `json:"sex_name"`
+	Cause         string  `json:"cause"`
+	UnitRange     string  `json:"unitRange"`
 }
 
 type PopulationData struct {
@@ -66,9 +69,12 @@ type HealthData struct {
 }
 
 type HighestGDPCountries struct {
-	CountryCode string  `json:"country_code"`
-	Year        string  `json:"year"`
-	Value       float64 `json:"value"`
+	CountryCode   string  `json:"country_code"`
+	CountryName   string  `json:"country_name"`
+	Indicator     string  `json:"indicator"`
+	IndicatorCode string  `json:"indicator_code"`
+	Year          string  `json:"year"`
+	Value         float64 `json:"value"`
 }
 
 type EconomyData struct {

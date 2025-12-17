@@ -40,6 +40,7 @@ func (ur *UtilsRepo) GetPermissions(userID string) (any, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		var userPermission UserPermissions
@@ -65,7 +66,9 @@ func (ur *UtilsRepo) GetPermissions(userID string) (any, error) {
 	for _, permission := range userPermissions {
 		permissions = append(permissions, permission.PermissionValue)
 	}
-	defer rows.Close()
+	if permissions == nil {
+		return permissions, nil
+	}
 	marshalledData, err := json.Marshal(permissions)
 	if err != nil {
 		log.Println("Error marshalling data", err)

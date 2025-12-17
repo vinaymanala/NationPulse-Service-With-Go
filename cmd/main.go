@@ -37,7 +37,7 @@ func main() {
 	}
 
 	defer rds.Client.Close()
-	defer db.Client.Close(ctx)
+	defer db.Client.Close()
 
 	// Start a HTTP server
 	srv := internals.NewServer(configs)

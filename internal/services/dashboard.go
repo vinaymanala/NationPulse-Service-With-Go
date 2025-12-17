@@ -3,6 +3,7 @@ package services
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/nationpulse-bff/internal/repos"
 	. "github.com/nationpulse-bff/internal/utils"
@@ -23,7 +24,8 @@ func NewDashboardService(configs *Configs, repo *repos.DashboardRepo) *Dashboard
 
 func (ds *DashboardService) GetTopCountriesByPopulation(w http.ResponseWriter, r *http.Request) {
 	log.Println("fetch top 5 populated countries")
-	data, err := ds.repo.GetTopCountriesByPopulationData(2025, 5)
+	year := time.Now().Year()
+	data, err := ds.repo.GetTopCountriesByPopulationData(year, 10)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
@@ -45,7 +47,8 @@ func (ds *DashboardService) GetTopCountriesByHealth(w http.ResponseWriter, r *ht
 
 func (ds *DashboardService) GetTopCountriesByGDP(w http.ResponseWriter, r *http.Request) {
 	log.Println("fetch top 5 gdp countries")
-	data, err := ds.repo.GetTopCountriesByGDPData(2025, 5)
+	year := time.Now().Year()
+	data, err := ds.repo.GetTopCountriesByGDPData(year, 10)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
