@@ -52,7 +52,7 @@ func IssueTokens(userID string) (*Tokens, error) {
 		Issuer:    t.Issuer,
 		Audience:  jwt.ClaimStrings{t.Audience},
 		IssuedAt:  jwt.NewNumericDate(now),
-		ExpiresAt: jwt.NewNumericDate(t.ExpAcc),
+		ExpiresAt: jwt.NewNumericDate(t.ExpRef),
 	})
 
 	var err error

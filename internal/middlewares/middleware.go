@@ -79,18 +79,21 @@ func authMiddleware(configs *utils.Configs, next http.Handler) http.Handler {
 		fmt.Println("--------TOKEN----------", token)
 		if token == "" {
 			log.Println(http.StatusUnauthorized, "missing token")
+			http.Error(w, "missing token", http.StatusUnauthorized)
 			return
 		}
 
 		claims, err := auth.ParseAccess(token)
 		if err != nil {
 			log.Println(http.StatusUnauthorized, err, "invalid token")
+			http.Error(w, "invalid token", http.StatusUnauthorized)
 			return
 		}
 
 		ctx := context.Background()
 		if _, err := rd.GetUserByJTI(ctx, "access:"+claims.ID); err != nil {
 			log.Println(http.StatusUnauthorized, err, "invalid token jti")
+			http.Error(w, "invalid token jti", http.StatusUnauthorized)
 			return
 		}
 		fmt.Println("")
@@ -132,12 +135,14 @@ func DefaultMiddlewares(configs *utils.Configs, next http.Handler) http.Handler 
 
 func WithAuthMiddlewares(configs *utils.Configs, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Compose auth as an inner middleware and keep the default middlewares (CORS, logging, panic recovery)
+		// as the outer layer so CORS headers are always set (even when auth fails).
 		middlewares := []Middleware{
+			func(configs *utils.Configs, next http.Handler) http.Handler {
+				return authMiddleware(configs, next)
+			},
 			DefaultMiddlewares,
 		}
-		middlewares = append(middlewares, func(configs *utils.Configs, next http.Handler) http.Handler {
-			return authMiddleware(configs, next)
-		})
 		h := executeMiddlewares(configs, middlewares, next)
 		h.ServeHTTP(w, r)
 	})

@@ -21,6 +21,6 @@ func NewUserHandler(mux *http.ServeMux, service *services.UserService) *UserHand
 func (uh *UserHandler) RegisterRoutes() {
 	uh.mux.HandleFunc("POST /signin", uh.service.HandleLogin)
 	uh.mux.HandleFunc("POST /signout", uh.service.HandleLogout)
-	uh.mux.HandleFunc("GET /token/refresh", uh.service.HandleRefreshToken)
+	uh.mux.HandleFunc("POST /token/refresh", uh.service.HandleRefreshToken)
 
 }

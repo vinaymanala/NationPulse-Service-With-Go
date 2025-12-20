@@ -25,7 +25,6 @@ func (us *UtilsService) GetUserPermissions(w http.ResponseWriter, r *http.Reques
 	log.Println("Fetching permissions...")
 	userID := r.Form.Get("userID")
 	fmt.Println("USERID", userID)
-	WriteJSON(w, http.StatusOK, "fetched permissions", true, nil)
 	data, err := us.repo.GetPermissions(userID)
 	if err != nil {
 		http.Error(w, "failed", http.StatusInternalServerError)

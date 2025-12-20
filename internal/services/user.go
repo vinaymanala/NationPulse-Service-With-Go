@@ -68,7 +68,14 @@ func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	auth.SetAuthCookies(w, tokens)
-	WriteJSON(w, http.StatusOK, user, true, nil)
+	var response = struct {
+		User        *store.User `json:"user"`
+		AccessToken string      `json:"access_token"`
+	}{
+		User:        user,
+		AccessToken: tokens.Access,
+	}
+	WriteJSON(w, http.StatusOK, response, true, nil)
 }
 
 func (us *UserService) HandleLogout(w http.ResponseWriter, r *http.Request) {
@@ -93,13 +100,31 @@ func (us *UserService) HandleLogout(w http.ResponseWriter, r *http.Request) {
 
 func (us *UserService) HandleRefreshToken(w http.ResponseWriter, r *http.Request) {
 	rds := us.Configs.Cache
+	acc, err := auth.MustCookie(r, "access_token")
+	var resp struct {
+		Access_token string `json:"access_token"`
+	}
+	if err != nil {
+		log.Println(http.StatusUnauthorized, errors.New("missing access token"))
+	} else {
+		claimsAcc, err := auth.ParseAccess(acc)
+		if err != nil {
+			log.Println(http.StatusUnauthorized, errors.New("invalid access token. Checking refresh token"))
+		} else {
+			resp.Access_token = claimsAcc.Subject
+			WriteJSON(w, http.StatusOK, resp, true, nil)
+			return
+		}
+	}
 	ref, err := auth.MustCookie(r, "refresh_token")
+
 	if err != nil {
 		log.Println(http.StatusUnauthorized, errors.New("missing refresh token"))
 		WriteJSON(w, http.StatusUnauthorized, nil, false, err.Error())
 		return
 	}
 	claims, err := auth.ParseRefresh(ref)
+	log.Println("ERROR REASON FOR REFRESH TOKEN", ref, claims, err)
 	if err != nil {
 		log.Println(http.StatusUnauthorized, errors.New("invalid refresh token"))
 		WriteJSON(w, http.StatusUnauthorized, nil, false, err.Error())
@@ -125,5 +150,5 @@ func (us *UserService) HandleRefreshToken(w http.ResponseWriter, r *http.Request
 		return
 	}
 	auth.SetAuthCookies(w, toks)
-	WriteJSON(w, http.StatusCreated, "refresh token created successfully", true, nil)
+	WriteJSON(w, http.StatusCreated, resp, true, nil)
 }
