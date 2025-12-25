@@ -22,7 +22,8 @@ func NewPopulationRepo(configs *Configs) *PopulationRepo {
 
 func (pr *PopulationRepo) GetPopulationByCountryData(countryCode string) (any, error) {
 	var populationByCountries []PopulationData
-	data, err := GetDataFromCache(pr.Configs, populationID+"country", &populationByCountries)
+	var cacheID = populationID + countryCode
+	data, err := GetDataFromCache(pr.Configs, cacheID, &populationByCountries)
 	if err != nil {
 		log.Println("Cache Get Failed. Trying DB.")
 	} else {
@@ -63,7 +64,7 @@ func (pr *PopulationRepo) GetPopulationByCountryData(countryCode string) (any, e
 	if err != nil {
 		log.Println("Error marshalling data", marshalledData)
 	}
-	if err := pr.Configs.Cache.SetData(pr.Configs.Context, populationID+"country", marshalledData); err != nil {
+	if err := pr.Configs.Cache.SetData(pr.Configs.Context, cacheID, marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
 	return populationByCountries, nil

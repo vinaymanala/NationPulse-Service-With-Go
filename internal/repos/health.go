@@ -22,7 +22,8 @@ var healthID = "health:"
 
 func (hr *HealthRepo) GetHealthData(countryCode string) (any, error) {
 	var healthData []HealthData
-	data, err := GetDataFromCache(hr.Configs, healthID+"country", &healthData)
+	var cacheID = healthID + countryCode
+	data, err := GetDataFromCache(hr.Configs, cacheID, &healthData)
 	if err != nil {
 		log.Println("Cache Get Failed. Trying DB.")
 	} else {
@@ -65,7 +66,7 @@ func (hr *HealthRepo) GetHealthData(countryCode string) (any, error) {
 	if err != nil {
 		log.Println("Error marshalling data", marshalledData)
 	}
-	if err := hr.Configs.Cache.SetData(hr.Configs.Context, healthID+"country", marshalledData); err != nil {
+	if err := hr.Configs.Cache.SetData(hr.Configs.Context, cacheID, marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
 	return healthData, nil

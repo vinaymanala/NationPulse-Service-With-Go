@@ -23,5 +23,6 @@ func (as *AdminService) SetPermissions(userID string, newPermissions map[string]
 
 func (as *AdminService) GetAllPermissions(w http.ResponseWriter, r *http.Request) {
 	// get all the permissions and return
+
 	w.Write([]byte(""))
 }

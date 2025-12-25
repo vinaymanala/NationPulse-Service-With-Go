@@ -22,7 +22,8 @@ func NewEconomyRepo(configs *Configs) *EconomyRepo {
 
 func (er *EconomyRepo) GetGovernmentData(countryCode string) (any, error) {
 	var governmentData []EconomyData
-	data, err := GetDataFromCache(er.Configs, economyId+"government", &governmentData)
+	var cacheID = economyId + countryCode + ":government"
+	data, err := GetDataFromCache(er.Configs, cacheID, &governmentData)
 	if err != nil {
 		log.Println("Cache Get Failed. Trying DB.")
 	} else {
@@ -61,7 +62,7 @@ func (er *EconomyRepo) GetGovernmentData(countryCode string) (any, error) {
 	if err != nil {
 		log.Println("Error marshalling data", err)
 	}
-	if err := er.Configs.Cache.SetData(er.Configs.Context, economyId+"government", marshalledData); err != nil {
+	if err := er.Configs.Cache.SetData(er.Configs.Context, cacheID, marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
 	return governmentData, nil
@@ -69,7 +70,8 @@ func (er *EconomyRepo) GetGovernmentData(countryCode string) (any, error) {
 
 func (er *EconomyRepo) GetGDPData(countryCode string) (any, error) {
 	var gdpData []EconomyData
-	data, err := GetDataFromCache(er.Configs, populationID+"GDP", &gdpData)
+	var cacheID = economyId + countryCode + "GDP"
+	data, err := GetDataFromCache(er.Configs, cacheID, &gdpData)
 	if err != nil {
 		log.Println("Cache Get Failed. Trying DB.")
 	} else {
@@ -108,7 +110,7 @@ func (er *EconomyRepo) GetGDPData(countryCode string) (any, error) {
 	if err != nil {
 		log.Println("Error  marshalling data", err)
 	}
-	if err := er.Configs.Cache.SetData(er.Configs.Context, economyId+"GDP", marshalledData); err != nil {
+	if err := er.Configs.Cache.SetData(er.Configs.Context, cacheID, marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
 	return gdpData, nil

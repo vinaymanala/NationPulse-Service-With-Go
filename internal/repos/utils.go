@@ -1,6 +1,7 @@
 package repos
 
 import (
+	"encoding/json"
 	"log"
 	"strconv"
 
@@ -22,12 +23,12 @@ var utilsID = "utils:"
 func (ur *UtilsRepo) GetPermissions(userID string) (any, error) {
 	var userPermissions []UserPermissions
 	var permissions []int
-	// data, err := GetDataFromCache(ur.Configs, utilsID+"permissions", &permissions)
-	// if err != nil {
-	// 	log.Println("Cache Get Failed. Trying DB.")
-	// } else {
-	// 	return *data, nil
-	// }
+	data, err := GetDataFromCache(ur.Configs, utilsID+"permissions:"+userID, &permissions)
+	if err != nil {
+		log.Println("Cache Get Failed. Trying DB.")
+	} else {
+		return *data, nil
+	}
 
 	sqlStatement := `SELECT * FROM get_user_permissions($1);`
 	id, err := strconv.Atoi(userID)
@@ -35,45 +36,28 @@ func (ur *UtilsRepo) GetPermissions(userID string) (any, error) {
 		log.Fatal("Error converting userId to int")
 		return nil, err
 	}
-	rows, err := ur.Configs.Db.Client.Query(ur.Configs.Context, sqlStatement, id)
+
+	permissionsData, err := FetchPermissionsFromDB(ur.Configs, sqlStatement, userPermissions, id)
 	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var userPermission UserPermissions
-		if err := rows.Scan(
-			&userPermission.Name,
-			&userPermission.Email,
-			&userPermission.RoleId,
-			&userPermission.RoleName,
-			&userPermission.RoleDescription,
-			&userPermission.ModuleID,
-			&userPermission.ModuleName,
-			&userPermission.ModuleValue,
-			&userPermission.PermissionID,
-			&userPermission.PermissionName,
-			&userPermission.PermissionValue,
-		); err != nil {
-			log.Fatalf("Error scanning a row: %v\n", err)
-			return nil, err
-		}
-		userPermissions = append(userPermissions, userPermission)
+		log.Println("Error fetching permissions from DB", err)
 	}
 
-	for _, permission := range userPermissions {
+	if err := ur.Configs.Cache.SetData(ur.Configs.Context, utilsID+"modulePermissions:"+userID, permissionsData); err != nil {
+		log.Println("Error Set Cache Data for route level permissions", err)
+	}
+
+	for _, permission := range permissionsData {
 		permissions = append(permissions, permission.PermissionValue)
 	}
 	if permissions == nil {
 		return permissions, nil
 	}
-	// marshalledData, err := json.Marshal(permissions)
-	// if err != nil {
-	// 	log.Println("Error marshalling data", err)
-	// }
-	// if err := ur.Configs.Cache.SetData(ur.Configs.Context, utilsID+"permissions", marshalledData); err != nil {
-	// 	log.Println("Error Set Cache Data", err)
-	// }
+	marshalledData, err := json.Marshal(permissions)
+	if err != nil {
+		log.Println("Error marshalling data", err)
+	}
+	if err := ur.Configs.Cache.SetData(ur.Configs.Context, utilsID+"permissions:"+userID, marshalledData); err != nil {
+		log.Println("Error Set Cache Data for user permissions", err)
+	}
 	return permissions, nil
 }

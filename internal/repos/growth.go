@@ -22,7 +22,8 @@ var growthID = "growth:"
 
 func (gr *GrowthRepo) GetGDPGrowthData(countryCode string) (any, error) {
 	var gdpGrowthData []GrowthData
-	data, err := GetDataFromCache(gr.Configs, growthID+"GDP", &gdpGrowthData)
+	var cacheID = growthID + countryCode + ":GDP"
+	data, err := GetDataFromCache(gr.Configs, cacheID, &gdpGrowthData)
 	if err != nil {
 		log.Println("Cache Get Failed. Trying DB.")
 	} else {
@@ -62,13 +63,14 @@ func (gr *GrowthRepo) GetGDPGrowthData(countryCode string) (any, error) {
 	if err != nil {
 		log.Println("Error marshalling data", err)
 	}
-	gr.Configs.Cache.SetData(gr.Configs.Context, growthID+"GDP", marshalledData)
+	gr.Configs.Cache.SetData(gr.Configs.Context, cacheID, marshalledData)
 	return gdpGrowthData, nil
 }
 
 func (gr *GrowthRepo) GetPopulationGrowth(countryCode string) (any, error) {
 	var populationGrowthData []GrowthData
-	data, err := GetDataFromCache(gr.Configs, growthID+"population", &populationGrowthData)
+	var cacheID = growthID + countryCode + ":population"
+	data, err := GetDataFromCache(gr.Configs, cacheID, &populationGrowthData)
 	if err != nil {
 		log.Println("Cache Get Failed. Trying DB.")
 	} else {
@@ -107,7 +109,7 @@ func (gr *GrowthRepo) GetPopulationGrowth(countryCode string) (any, error) {
 	if err != nil {
 		log.Println("Error marshalling data", err)
 	}
-	if err := gr.Configs.Cache.SetData(gr.Configs.Context, growthID+"population", marshalledData); err != nil {
+	if err := gr.Configs.Cache.SetData(gr.Configs.Context, cacheID, marshalledData); err != nil {
 		log.Println("Error Set Cache Data", err)
 	}
 	return populationGrowthData, nil

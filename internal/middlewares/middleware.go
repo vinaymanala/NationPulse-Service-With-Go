@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/nationpulse-bff/internal/auth"
@@ -14,6 +15,35 @@ import (
 
 type Middleware func(*utils.Configs, http.Handler) http.Handler
 type WithAuthMiddleware func(*utils.Configs, http.Handler) http.Handler
+
+func checkPermissions(configs *utils.Configs, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userID := r.Form.Get("userID")
+		cacheID := "utils:modulePermissions:" + userID
+		log.Println("ID", userID)
+		id, err := strconv.Atoi(userID)
+		if err != nil {
+			log.Fatal("Error converting userId to int", err)
+			return
+		}
+		var permissions []utils.UserPermissions
+		data, err := utils.GetModulePermissionsFromCache(configs, id, cacheID, permissions, w, r)
+		if err != nil {
+			log.Println("Error getting module permissions", err)
+		}
+		log.Println(data)
+		// check for req URL path and the corresponding permissions
+		requestPath := r.URL.Path
+
+		if !utils.HasPermissions(requestPath, &permissions) {
+			log.Println("Error: Not Authorized to request this resources: " + requestPath)
+			http.Error(w, "Forbidden resource", http.StatusForbidden)
+			return
+		}
+		log.Println("Permission check OK! : " + requestPath)
+		next.ServeHTTP(w, r)
+	})
+}
 
 func allowCors(configs *utils.Configs, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +95,6 @@ func bearerFromHandler(r *http.Request) string {
 }
 
 func authMiddleware(configs *utils.Configs, next http.Handler) http.Handler {
-	rd := configs.Cache
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Implement authentication logic here
 		var token string
@@ -91,7 +120,7 @@ func authMiddleware(configs *utils.Configs, next http.Handler) http.Handler {
 		}
 
 		ctx := context.Background()
-		if _, err := rd.GetUserByJTI(ctx, "access:"+claims.ID); err != nil {
+		if _, err := configs.Cache.GetUserByJTI(ctx, "access:"+claims.ID); err != nil {
 			log.Println(http.StatusUnauthorized, err, "invalid token jti")
 			http.Error(w, "invalid token jti", http.StatusUnauthorized)
 			return
@@ -138,9 +167,10 @@ func WithAuthMiddlewares(configs *utils.Configs, next http.Handler) http.Handler
 		// Compose auth as an inner middleware and keep the default middlewares (CORS, logging, panic recovery)
 		// as the outer layer so CORS headers are always set (even when auth fails).
 		middlewares := []Middleware{
-			func(configs *utils.Configs, next http.Handler) http.Handler {
-				return authMiddleware(configs, next)
-			},
+			checkPermissions,
+			// func(configs *utils.Configs, next http.Handler) http.Handler {
+			authMiddleware,
+			// },
 			DefaultMiddlewares,
 		}
 		h := executeMiddlewares(configs, middlewares, next)
