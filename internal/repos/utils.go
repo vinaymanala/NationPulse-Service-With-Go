@@ -47,7 +47,7 @@ func (ur *UtilsRepo) GetPermissions(userID string) (any, error) {
 	}
 
 	for _, permission := range permissionsData {
-		permissions = append(permissions, permission.PermissionValue)
+		permissions = append(permissions, permission.ModuleValue)
 	}
 	if permissions == nil {
 		return permissions, nil

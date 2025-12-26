@@ -35,7 +35,7 @@ func checkPermissions(configs *utils.Configs, next http.Handler) http.Handler {
 		// check for req URL path and the corresponding permissions
 		requestPath := r.URL.Path
 
-		if !utils.HasPermissions(requestPath, &permissions) {
+		if !utils.HasPermissions(requestPath, &data) {
 			log.Println("Error: Not Authorized to request this resources: " + requestPath)
 			http.Error(w, "Forbidden resource", http.StatusForbidden)
 			return

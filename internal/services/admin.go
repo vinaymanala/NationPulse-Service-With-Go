@@ -1,28 +1,55 @@
 package services
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 
+	"github.com/nationpulse-bff/internal/repos"
 	. "github.com/nationpulse-bff/internal/utils"
 )
 
 type AdminService struct {
 	// Add any dependencies like database connections here
 	Configs *Configs
+	repo    *repos.AdminRepo
 }
 
-func NewAdminService(configs *Configs) *AdminService {
+func NewAdminService(configs *Configs, repo *repos.AdminRepo) *AdminService {
 	return &AdminService{
 		Configs: configs,
+		repo:    repo,
 	}
 }
-func (as *AdminService) SetPermissions(userID string, newPermissions map[string]int) bool {
+func (as *AdminService) SetUserPermissions(w http.ResponseWriter, r *http.Request) {
 	// upate the database with new permissions
-	return true
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	var data UpdatePermissions
+	if err := json.Unmarshal(body, &data); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+	err = as.repo.SetUserPermissions(data)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
-func (as *AdminService) GetAllPermissions(w http.ResponseWriter, r *http.Request) {
-	// get all the permissions and return
+func (as *AdminService) GetUsers(w http.ResponseWriter, r *http.Request) {
 
-	w.Write([]byte(""))
+	data, err := as.repo.GetUsers()
+	if err != nil {
+		http.Error(w, "Error fetching all users"+err.Error(), http.StatusBadRequest)
+		WriteJSON(w, http.StatusBadRequest, nil, false, err.Error())
+		return
+	}
+
+	WriteJSON(w, http.StatusOK, data, true, nil)
 }

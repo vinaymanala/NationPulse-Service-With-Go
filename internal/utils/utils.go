@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, data any, success bool, err any) error {
@@ -45,19 +47,28 @@ func GetDataFromCache[T any](configs *Configs, key string, mappedStruct T) (*T, 
 }
 
 func checkModulePermission(permissions []UserPermissions, moduleID int) bool {
+	log.Printf("HEALTH_ID %d", HEALTH_ID)
+	log.Printf("Permissions LOG: %v", permissions)
 	for _, p := range permissions {
-		return p.ModuleID == moduleID
+		log.Printf("p.ModuleID: %d, moduleID: %d", p.ModuleValue, moduleID)
+		if p.ModuleValue == moduleID {
+			return true
+		}
 	}
 	return false
 }
 
 func HasPermissions(requestPath string, permissions *[]UserPermissions) bool {
+	log.Printf("PERMISSIONS ARG %v", *permissions)
 	switch {
-	case strings.HasPrefix(requestPath, PERMISSION):
+	case strings.HasPrefix(requestPath, ADMIN_PERMISSION):
 		return checkModulePermission(*permissions, PERMISSION_ID)
-	case strings.HasPrefix(requestPath, DASHBOARD):
+	case strings.HasPrefix(requestPath, DASHBOARD) || strings.HasPrefix(requestPath, PERMISSION):
 		return checkModulePermission(*permissions, DASHBOARD_ID)
+	case strings.HasPrefix(requestPath, POPULATION) || strings.HasPrefix(requestPath, POPULATION_GROWTH):
+		return checkModulePermission(*permissions, POPULATION_ID)
 	case strings.HasPrefix(requestPath, HEALTH):
+		log.Println("Touched Health Case")
 		return checkModulePermission(*permissions, HEALTH_ID)
 	case strings.HasPrefix(requestPath, ECONOMY):
 		return checkModulePermission(*permissions, ECONOMY_ID)
@@ -65,8 +76,9 @@ func HasPermissions(requestPath string, permissions *[]UserPermissions) bool {
 		return checkModulePermission(*permissions, GROWTH_ID)
 	case strings.HasPrefix(requestPath, REPORTING):
 		return checkModulePermission(*permissions, REPORTING_ID)
+	default:
+		return false
 	}
-	return false
 }
 
 func FetchPermissionsFromDB(configs *Configs, sqlStatement string, userPermissions []UserPermissions, id int) ([]UserPermissions, error) {
@@ -77,27 +89,28 @@ func FetchPermissionsFromDB(configs *Configs, sqlStatement string, userPermissio
 	}
 	defer rows.Close()
 
-	for rows.Next() {
-		var userPermission UserPermissions
-		if err := rows.Scan(
-			&userPermission.Name,
-			&userPermission.Email,
-			&userPermission.RoleId,
-			&userPermission.RoleName,
-			&userPermission.RoleDescription,
-			&userPermission.ModuleID,
-			&userPermission.ModuleName,
-			&userPermission.ModuleValue,
-			&userPermission.PermissionID,
-			&userPermission.PermissionName,
-			&userPermission.PermissionValue,
-		); err != nil {
-			log.Fatalf("Error scanning a row: %v\n", err)
-			return nil, err
-		}
-		userPermissions = append(userPermissions, userPermission)
+	// for rows.Next() {
+	// 	var userPermission UserPermissions
+	// if err := rows.Scan(
+	// 	&userPermission.Name,
+	// 	&userPermission.Email,
+	// 	&userPermission.RoleId,
+	// 	&userPermission.RoleName,
+	// 	&userPermission.RoleDescription,
+	// 	&userPermission.ModuleID,
+	// 	&userPermission.ModuleName,
+	// 	&userPermission.ModuleValue,
+	// 	&userPermission.PermissionID,
+	// 	&userPermission.PermissionName,
+	// 	&userPermission.PermissionValue,
+	// );
+	data, err := pgx.CollectRows(rows, pgx.RowToStructByPos[UserPermissions])
+	if err != nil {
+		log.Fatalf("Error scanning a row: %v\n", err)
+		return nil, err
 	}
-	return userPermissions, nil
+	// userPermissions = append(userPermissions, userPermission)
+	return data, nil
 
 }
 

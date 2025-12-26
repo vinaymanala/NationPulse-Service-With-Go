@@ -3,11 +3,19 @@ package store
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type PgClient struct{ Client *pgxpool.Pool }
+type PgClient struct {
+	Client *pgxpool.Pool
+}
+
+var (
+	pgInstance *PgClient
+	pgOnce     sync.Once
+)
 
 type User struct {
 	ID    string `json:"id"`
@@ -18,14 +26,20 @@ type User struct {
 func NewPgClient(ctx context.Context) *PgClient {
 	connStr := "postgres://postgres:postgres@localhost:5432/nationPulseDB?sslmode=disable"
 	fmt.Println(connStr)
-
-	pool, err := pgxpool.New(ctx, connStr)
-	if err != nil {
-		fmt.Printf("Error occured while connecting database: %s\n", err)
-		panic(err)
-	}
+	pgOnce.Do(func() {
+		db, err := pgxpool.New(ctx, connStr)
+		if err != nil {
+			fmt.Printf("Error occured while connecting database: %s\n", err)
+			panic(err)
+		}
+		pgInstance = &PgClient{Client: db}
+	})
 	fmt.Println("Connected to Postgres database successfully")
-	return &PgClient{Client: pool}
+	return pgInstance
+}
+
+func (pg *PgClient) Ping(ctx context.Context) error {
+	return pg.Client.Ping(ctx)
 }
 
 func (pg *PgClient) GetUser(ctx context.Context, user *User) (*User, error) {
