@@ -55,7 +55,7 @@ func (us *UserService) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	//}
 	fmt.Println("USER FROM DB", user)
 
-	tokens, err := auth.IssueTokens(user.ID)
+	tokens, err := auth.IssueTokens(user.ID, us.Configs)
 	if err != nil {
 		http.Error(w, "Failed to issue tokens", http.StatusInternalServerError)
 		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
@@ -84,13 +84,13 @@ func (us *UserService) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	ref, _ := r.Cookie("refresh_token")
 
 	if acc.Value != "" {
-		if claims, err := auth.ParseAccess(acc.Value); err == nil {
+		if claims, err := auth.ParseAccess(acc.Value, us.Configs); err == nil {
 			_ = us.Configs.Cache.DelJTI(r.Context(), "access"+claims.ID)
 		}
 	}
 
 	if ref.Value != "" {
-		if claims, err := auth.ParseAccess(ref.Value); err == nil {
+		if claims, err := auth.ParseAccess(ref.Value, us.Configs); err == nil {
 			_ = rds.DelJTI(r.Context(), "ref"+claims.ID)
 		}
 	}
@@ -107,7 +107,7 @@ func (us *UserService) HandleRefreshToken(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		log.Println(http.StatusUnauthorized, errors.New("missing access token"))
 	} else {
-		claimsAcc, err := auth.ParseAccess(acc)
+		claimsAcc, err := auth.ParseAccess(acc, us.Configs)
 		if err != nil {
 			log.Println(http.StatusUnauthorized, errors.New("invalid access token. Checking refresh token"))
 		} else {
@@ -123,7 +123,7 @@ func (us *UserService) HandleRefreshToken(w http.ResponseWriter, r *http.Request
 		WriteJSON(w, http.StatusUnauthorized, nil, false, err.Error())
 		return
 	}
-	claims, err := auth.ParseRefresh(ref)
+	claims, err := auth.ParseRefresh(ref, us.Configs)
 	log.Println("ERROR REASON FOR REFRESH TOKEN", ref, claims, err)
 	if err != nil {
 		log.Println(http.StatusUnauthorized, errors.New("invalid refresh token"))
@@ -138,7 +138,7 @@ func (us *UserService) HandleRefreshToken(w http.ResponseWriter, r *http.Request
 	}
 	_ = rds.DelJTI(ctx, "refresh:"+claims.ID)
 
-	toks, err := auth.IssueTokens(claims.Subject)
+	toks, err := auth.IssueTokens(claims.Subject, us.Configs)
 	if err != nil {
 		log.Println(http.StatusInternalServerError, errors.New("could not issue new tokens"))
 		WriteJSON(w, http.StatusUnauthorized, nil, false, err.Error())

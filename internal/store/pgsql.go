@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/nationpulse-bff/internal/config"
 )
 
 type PgClient struct {
@@ -23,8 +24,14 @@ type User struct {
 	Email string `json:"email"`
 }
 
-func NewPgClient(ctx context.Context) *PgClient {
-	connStr := "postgres://postgres:postgres@localhost:5432/nationPulseDB?sslmode=disable"
+func NewPgClient(ctx context.Context, cfg config.Config) *PgClient {
+	// pgHost := cfg.PostgresHost
+	pgName := cfg.PostgresName
+	pgPass := cfg.PostgresPass
+	pgUser := cfg.PostgresUser
+	pgAddr := cfg.PostgresAddr
+	// connStr := "postgres://postgres:postgres@localhost:5432/nationPulseDB?sslmode=disable"
+	connStr := "postgres://" + pgUser + ":" + pgPass + "@" + pgAddr + "/" + pgName + "?sslmode=disable"
 	fmt.Println(connStr)
 	pgOnce.Do(func() {
 		db, err := pgxpool.New(ctx, connStr)

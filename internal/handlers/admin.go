@@ -19,6 +19,7 @@ func NewAdminHandler(mux *http.ServeMux, service *services.AdminService) *AdminH
 }
 
 func (ah *AdminHandler) RegisterRoutes() {
+	ah.mux.HandleFunc("POST /getUserPermissions", ah.service.GetUserPermissions)
 	ah.mux.HandleFunc("POST /setUserPermissions", ah.service.SetUserPermissions)
 	ah.mux.HandleFunc("GET /getUsers", ah.service.GetUsers)
 

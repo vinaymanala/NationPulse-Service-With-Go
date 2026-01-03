@@ -107,22 +107,22 @@ func authMiddleware(configs *utils.Configs, next http.Handler) http.Handler {
 		}
 		fmt.Println("--------TOKEN----------", token)
 		if token == "" {
-			log.Println(http.StatusUnauthorized, "missing token")
-			http.Error(w, "missing token", http.StatusUnauthorized)
+			log.Println(http.StatusUnauthorized, "User does not have access or missing token")
+			http.Error(w, "User does not have access or missing token", http.StatusUnauthorized)
 			return
 		}
 
-		claims, err := auth.ParseAccess(token)
+		claims, err := auth.ParseAccess(token, configs)
 		if err != nil {
-			log.Println(http.StatusUnauthorized, err, "invalid token")
-			http.Error(w, "invalid token", http.StatusUnauthorized)
+			log.Println(http.StatusUnauthorized, err, "User does not have access")
+			http.Error(w, "User does not have access", http.StatusUnauthorized)
 			return
 		}
 
 		ctx := context.Background()
 		if _, err := configs.Cache.GetUserByJTI(ctx, "access:"+claims.ID); err != nil {
-			log.Println(http.StatusUnauthorized, err, "invalid token jti")
-			http.Error(w, "invalid token jti", http.StatusUnauthorized)
+			log.Println(http.StatusUnauthorized, err, "User does not have access or invalid token jti")
+			http.Error(w, "User does not have acces or invalid token jti", http.StatusUnauthorized)
 			return
 		}
 		fmt.Println("")

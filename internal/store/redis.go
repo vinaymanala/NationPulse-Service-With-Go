@@ -4,19 +4,19 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
+	"github.com/nationpulse-bff/internal/config"
 	"github.com/redis/go-redis/v9"
 )
 
 type Redis struct{ Client *redis.Client }
 
-func NewRedis() *Redis {
-	addr := os.Getenv("REDIS_ADDR")
-	if addr == "" {
-		addr = "localhost:6379"
-	}
+func NewRedis(cfg config.Config) *Redis {
+	addr := cfg.RedisAddr
+	// if addr == "" {
+	// 	addr = "localhost:6379"
+	// }
 	rdb := redis.NewClient(&redis.Options{Addr: addr})
 	fmt.Println("Connected to Redis successfully")
 	return &Redis{Client: rdb}

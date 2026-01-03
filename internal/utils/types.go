@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/nationpulse-bff/internal/config"
+	"github.com/nationpulse-bff/internal/kafka"
 	"github.com/nationpulse-bff/internal/store"
 )
 
@@ -11,6 +13,19 @@ type Configs struct {
 	Db      *store.PgClient
 	Cache   *store.Redis
 	Context context.Context
+	Kafka   *kafka.Kafka
+	Cfg     config.Config
+}
+
+type Filter struct {
+	Headers []string `json:"headers"`
+	Records []string `json:"records"`
+}
+
+type ExportApiRequest struct {
+	ExportID int    `json:"exportID"`
+	UserID   int    `json:"userID"`
+	Filters  Filter `json:"filters"`
 }
 
 type ApiResponse struct {

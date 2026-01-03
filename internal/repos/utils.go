@@ -42,9 +42,9 @@ func (ur *UtilsRepo) GetPermissions(userID string) (any, error) {
 		log.Println("Error fetching permissions from DB", err)
 	}
 
-	if err := ur.Configs.Cache.SetData(ur.Configs.Context, utilsID+"modulePermissions:"+userID, permissionsData); err != nil {
-		log.Println("Error Set Cache Data for route level permissions", err)
-	}
+	// if err := ur.Configs.Cache.SetData(ur.Configs.Context, utilsID+"modulePermissions:"+userID, permissionsData); err != nil {
+	// 	log.Println("Error Set Cache Data for route level permissions", err)
+	// }
 
 	for _, permission := range permissionsData {
 		permissions = append(permissions, permission.ModuleValue)

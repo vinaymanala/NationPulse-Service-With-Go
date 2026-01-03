@@ -8,6 +8,8 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/nationpulse-bff/internal/config"
+	"github.com/nationpulse-bff/internal/kafka"
 	internals "github.com/nationpulse-bff/internal/server"
 	"github.com/nationpulse-bff/internal/store"
 	"github.com/nationpulse-bff/internal/utils"
@@ -19,21 +21,30 @@ import (
 
 func main() {
 	ctx := context.Background()
-	// Load environment variables
-	_ = godotenv.Load()
-	for _, k := range []string{"ACCESS_SECRET", "REFRESH_SECRET"} {
-		if os.Getenv(k) == "" {
-			log.Fatalf("%s not set", k)
-		}
+	// Load environment variables from .env for local development
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found or failed to load; relying on environment variables")
 	}
+
+	// Load configuration from environment
+	cfg := config.Load()
+
+	// for _, k := range []string{"ACCESS_SECRET", "REFRESH_SECRET"} {
+	// 	if os.Getenv(k) == "" {
+	// 		log.Fatalf("%s not set", k)
+	// 	}
+	// }
 	// Create redis and postgres store in context
-	rds := store.NewRedis()
-	db := store.NewPgClient(ctx)
+	rds := store.NewRedis(cfg)
+	db := store.NewPgClient(ctx, cfg)
+	k := kafka.NewKafka(ctx, cfg)
 
 	configs := &utils.Configs{
 		Db:      db,
 		Cache:   rds,
 		Context: ctx,
+		Kafka:   k,
+		Cfg:     cfg,
 	}
 
 	defer rds.Client.Close()

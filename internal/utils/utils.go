@@ -20,7 +20,7 @@ func WriteJSON(w http.ResponseWriter, status int, data any, success bool, err an
 		IsSuccess: success,
 		Error:     err,
 	}
-	log.Printf("Message: %s, isSuccess: %t, Error:%v \n", "Data received", success, err)
+	log.Printf("Message: %s: %s, isSuccess: %t, Error:%v \n", "Data received", data, success, err)
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -65,7 +65,7 @@ func HasPermissions(requestPath string, permissions *[]UserPermissions) bool {
 		return checkModulePermission(*permissions, PERMISSION_ID)
 	case strings.HasPrefix(requestPath, DASHBOARD) || strings.HasPrefix(requestPath, PERMISSION):
 		return checkModulePermission(*permissions, DASHBOARD_ID)
-	case strings.HasPrefix(requestPath, POPULATION) || strings.HasPrefix(requestPath, POPULATION_GROWTH):
+	case strings.HasPrefix(requestPath, POPULATION):
 		return checkModulePermission(*permissions, POPULATION_ID)
 	case strings.HasPrefix(requestPath, HEALTH):
 		log.Println("Touched Health Case")

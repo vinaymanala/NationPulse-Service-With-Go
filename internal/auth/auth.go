@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/nationpulse-bff/internal/store"
+	"github.com/nationpulse-bff/internal/utils"
 )
 
 type Tokens struct {
@@ -25,7 +25,7 @@ type Tokens struct {
 	Audience string
 }
 
-func IssueTokens(userID string) (*Tokens, error) {
+func IssueTokens(userID string, configs *utils.Configs) (*Tokens, error) {
 	now := time.Now().UTC()
 	t := &Tokens{
 		UserID:   userID,
@@ -56,12 +56,12 @@ func IssueTokens(userID string) (*Tokens, error) {
 	})
 
 	var err error
-	t.Access, err = acc.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+	t.Access, err = acc.SignedString([]byte(configs.Cfg.AccessSecret))
 	if err != nil {
 		return nil, err
 	}
 
-	t.Refresh, err = ref.SignedString([]byte(os.Getenv("REFRESH_SECRET")))
+	t.Refresh, err = ref.SignedString([]byte(configs.Cfg.RefreshSecret))
 	if err != nil {
 		return nil, err
 	}
@@ -130,13 +130,15 @@ func ClearAuthCookies(w http.ResponseWriter) {
 	fmt.Println("Cookie cleared...", access_cookie, refresh_cookie)
 }
 
-func ParseAccess(tokenStr string) (*jwt.RegisteredClaims, error) {
-	secret := os.Getenv("ACCESS_SECRET")
+func ParseAccess(tokenStr string, configs *utils.Configs) (*jwt.RegisteredClaims, error) {
+	secret := configs.Cfg.AccessSecret
+	fmt.Println("SECRET RECOVERED", secret)
 	return parseWithSecret(tokenStr, secret)
 }
 
-func ParseRefresh(tokenStr string) (*jwt.RegisteredClaims, error) {
-	secret := os.Getenv("REFRESH_SECRET")
+func ParseRefresh(tokenStr string, configs *utils.Configs) (*jwt.RegisteredClaims, error) {
+	secret := configs.Cfg.RefreshSecret
+	fmt.Println("SECRET RECOVERED", secret)
 	return parseWithSecret(tokenStr, secret)
 }
 
