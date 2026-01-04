@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -141,4 +142,53 @@ func GetModulePermissionsFromCache(configs *Configs, userID int, key string, per
 		return nil, err
 	}
 	return permissions, nil
+}
+
+func getJSONTags(s any) []string {
+	t := reflect.TypeOf(s)
+	fields := make([]string, t.NumField())
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		jsonTag := field.Tag.Get("json")
+
+		if idx := strings.Index(jsonTag, ","); idx != -1 {
+			jsonTag = jsonTag[:idx]
+		}
+		fields[i] = jsonTag
+	}
+
+	return fields
+}
+
+func GetQueryAndHeaders(req *ExportApiRequest) error {
+
+	table := req.RequestTableString
+	var query string
+	var headers []string
+	switch table {
+	case "population":
+		query = `SELECT * FROM get_population_by_country_code($1)`
+		headers = getJSONTags(PopulationData{})
+	case "health":
+		query = `SELECT * FROM get_healthstatus_by_country_code($1)`
+		headers = getJSONTags(HealthData{})
+	case "economy:gov":
+		query = `SELECT * FROM get_publicgovernmentyearly_by_country_code($1)`
+		headers = getJSONTags(EconomyData{})
+	case "economy:gdp":
+		query = `SELECT * FROM get_gdppercapita_by_country_code($1)`
+		headers = getJSONTags(EconomyData{})
+	case "growth:gdp":
+		query = `SELECT * FROM get_perfgrowthgdpds_by_country_code($1)`
+		headers = getJSONTags(GrowthData{})
+	case "growth:population":
+		query = `SELECT * FROM get_perfgrowthpopulation_by_country_code($1)`
+		headers = getJSONTags(GrowthData{})
+	}
+
+	req.Filters.Query = query
+	req.Filters.Headers = headers
+
+	return nil
 }

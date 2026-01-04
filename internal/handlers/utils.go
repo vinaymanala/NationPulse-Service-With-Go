@@ -21,5 +21,6 @@ func NewUtilsHandler(mux *http.ServeMux, service *services.UtilsService) *UtilsH
 func (uh *UtilsHandler) RegisterRoutes() {
 	uh.mux.HandleFunc("POST /permissions", uh.service.GetUserPermissions)
 	uh.mux.HandleFunc("POST /reports/publish", uh.service.PublishExportRequest)
+	uh.mux.HandleFunc("GET /reports/subscribe", uh.service.SubscribeExportResponse)
 
 }

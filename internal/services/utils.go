@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/nationpulse-bff/internal/repos"
@@ -56,6 +55,9 @@ func (us *UtilsService) PublishExportRequest(w http.ResponseWriter, r *http.Requ
 		fmt.Println("Error unmarshalling request body", err)
 		WriteJSON(w, http.StatusBadRequest, nil, false, err)
 	}
+	fmt.Println("REQUEST PAYLOAD", request)
+
+	GetQueryAndHeaders(&request)
 	// create new writer
 	kw := us.Configs.Kafka.NewWriter("message-log")
 
@@ -71,7 +73,7 @@ func (us *UtilsService) PublishExportRequest(w http.ResponseWriter, r *http.Requ
 
 	// publish the message to kafka broker
 	publishExportMessage := kafka.Message{
-		Key:   []byte(strconv.Itoa(request.ExportID)),
+		Key:   []byte(request.ExportID),
 		Value: []byte(exportPayload),
 	}
 
@@ -85,7 +87,7 @@ func (us *UtilsService) PublishExportRequest(w http.ResponseWriter, r *http.Requ
 	}
 
 	var response = struct {
-		ExportID int    `json:"export_id"`
+		ExportID string `json:"exportID"`
 		Status   string `json:"status"`
 	}{
 		ExportID: request.ExportID,
@@ -94,4 +96,8 @@ func (us *UtilsService) PublishExportRequest(w http.ResponseWriter, r *http.Requ
 
 	fmt.Println("Response", response)
 	WriteJSON(w, http.StatusOK, response, true, nil)
+}
+
+func (us *UtilsService) SubscribeExportResponse(w http.ResponseWriter, r *http.Request) {
+	log.Println("Requesting reporting service to receive csv")
 }

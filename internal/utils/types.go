@@ -18,14 +18,17 @@ type Configs struct {
 }
 
 type Filter struct {
-	Headers []string `json:"headers"`
-	Records []string `json:"records"`
+	Headers []string   `json:"headers"`
+	Records [][]string `json:"records"`
+	Query   string     `json:"query"`
 }
 
 type ExportApiRequest struct {
-	ExportID int    `json:"exportID"`
-	UserID   int    `json:"userID"`
-	Filters  Filter `json:"filters"`
+	ExportID           string `json:"exportID"`
+	UserID             int    `json:"userID"`
+	Filters            Filter `json:"filters"`
+	RequestTableString string `json:"requestTableString"`
+	RequestCountryCode string `json:"requestCountryCode"`
 }
 
 type ApiResponse struct {
