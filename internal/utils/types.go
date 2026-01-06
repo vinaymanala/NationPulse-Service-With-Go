@@ -23,12 +23,18 @@ type Filter struct {
 	Query   string     `json:"query"`
 }
 
-type ExportApiRequest struct {
+type ExportApiMessageRequest struct {
 	ExportID           string `json:"exportID"`
 	UserID             int    `json:"userID"`
 	Filters            Filter `json:"filters"`
 	RequestTableString string `json:"requestTableString"`
 	RequestCountryCode string `json:"requestCountryCode"`
+}
+
+type ExportApiMessageResponse struct {
+	Status     string `json:"Status"`
+	StatusCode int    `json:"StatusCode"`
+	Data       any    `json:"Data"`
 }
 
 type ApiResponse struct {

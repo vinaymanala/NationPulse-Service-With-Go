@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,8 +10,10 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/segmentio/kafka-go"
 )
 
 func WriteJSON(w http.ResponseWriter, status int, data any, success bool, err any) error {
@@ -161,7 +164,7 @@ func getJSONTags(s any) []string {
 	return fields
 }
 
-func GetQueryAndHeaders(req *ExportApiRequest) error {
+func GetQueryAndHeaders(req *ExportApiMessageRequest) error {
 
 	table := req.RequestTableString
 	var query string
@@ -191,4 +194,33 @@ func GetQueryAndHeaders(req *ExportApiRequest) error {
 	req.Filters.Headers = headers
 
 	return nil
+}
+
+func ReadMessages(r *kafka.Reader, ctx context.Context,
+	callbackFn func(message kafka.Message) error) {
+
+	for {
+		select {
+		case <-ctx.Done():
+			fmt.Println("Kafka BFF Reader shutting down...")
+			return
+		default:
+		}
+		readerCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		message, err := r.ReadMessage(readerCtx)
+		cancel()
+		if err != nil {
+			log.Println("Error Reading message: ", err)
+			continue
+		}
+		fmt.Println("MESSAGE========>", string(message.Value))
+		if err := callbackFn(message); err != nil {
+			log.Println("Error occured processing the message", err)
+			continue
+		}
+		if err := r.CommitMessages(ctx, message); err != nil {
+			log.Println("Error committing", err)
+		}
+
+	}
 }
