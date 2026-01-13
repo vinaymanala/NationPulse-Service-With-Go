@@ -2,7 +2,6 @@ package repos
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	. "github.com/nationpulse-bff/internal/utils"
@@ -29,7 +28,7 @@ func (er *EconomyRepo) GetGovernmentData(countryCode string) (any, error) {
 	} else {
 		return *data, nil
 	}
-	sqlStatement := `SELECT * FROM get_publicgovernmentyearly_by_country_code($1)`
+	sqlStatement := `SELECT * FROM geteconomygovenmentbycountry($1)`
 	rows, err := er.Configs.Db.Client.Query(er.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
@@ -52,7 +51,7 @@ func (er *EconomyRepo) GetGovernmentData(countryCode string) (any, error) {
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
-		fmt.Println(economygovernmentByCountry)
+		// fmt.Println(economygovernmentByCountry)
 		governmentData = append(governmentData, economygovernmentByCountry)
 	}
 	if governmentData == nil {
@@ -77,7 +76,7 @@ func (er *EconomyRepo) GetGDPData(countryCode string) (any, error) {
 	} else {
 		return *data, nil
 	}
-	sqlStatement := `SELECT * FROM get_gdppercapita_by_country_code($1)`
+	sqlStatement := `SELECT * FROM geteconomygdpbycountry($1)`
 	rows, err := er.Configs.Db.Client.Query(er.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
@@ -100,7 +99,7 @@ func (er *EconomyRepo) GetGDPData(countryCode string) (any, error) {
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
-		fmt.Println(economyGDPByCountry)
+		// fmt.Println(economyGDPByCountry)
 		gdpData = append(gdpData, economyGDPByCountry)
 	}
 	if gdpData == nil {

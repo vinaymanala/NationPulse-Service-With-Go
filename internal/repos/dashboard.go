@@ -2,7 +2,6 @@ package repos
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	. "github.com/nationpulse-bff/internal/utils"
@@ -61,7 +60,7 @@ func (dr *DashboardRepo) GetTopCountriesByPopulationData(currentYear int, top_co
 	if err := dr.Configs.Cache.SetData(dr.Configs.Context, dashboardID+"population", marshalledData); err != nil {
 		log.Println("Error set cache data:", err)
 	}
-	fmt.Println("Call Successfull")
+	// fmt.Println("Call Successfull")
 	return topCountriesByPopulation, nil
 }
 
@@ -138,11 +137,12 @@ func (dr *DashboardRepo) GetTopCountriesByGDPData(currentYear int, topNCountries
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
-		fmt.Println(highestGDPCountry)
+		// fmt.Println("COMing Dat", highestGDPCountry)
 		highestGDPCountries = append(highestGDPCountries, highestGDPCountry)
 	}
 
 	if highestGDPCountries == nil {
+		// fmt.Println("highestGDPCountries is null=============")
 		return highestGDPCountries, nil
 	}
 	marshalledData, err := json.Marshal(highestGDPCountries)

@@ -7,14 +7,20 @@ import (
 	"github.com/nationpulse-bff/internal/config"
 	"github.com/nationpulse-bff/internal/kafka"
 	"github.com/nationpulse-bff/internal/store"
+	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 )
 
 type Configs struct {
-	Db      *store.PgClient
-	Cache   *store.Redis
-	Context context.Context
-	Kafka   *kafka.Kafka
-	Cfg     config.Config
+	Db                  *store.PgClient
+	Cache               *store.Redis
+	Context             context.Context
+	Kafka               *kafka.Kafka
+	Logger              *zap.Logger
+	Metrics             *prometheus.Registry
+	MetricHttpRequests  *prometheus.CounterVec
+	MetricHttpDurations *prometheus.HistogramVec
+	Cfg                 config.Config
 }
 
 type Filter struct {

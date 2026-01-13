@@ -31,7 +31,7 @@ func NewUtilsService(configs *Configs, repo *repos.UtilsRepo) *UtilsService {
 func (us *UtilsService) GetUserPermissions(w http.ResponseWriter, r *http.Request) {
 	log.Println("Fetching permissions...")
 	userID := r.Form.Get("userID")
-	fmt.Println("USERID", userID)
+	// fmt.Println("USERID", userID)
 	data, err := us.repo.GetPermissions(userID)
 	if err != nil {
 		http.Error(w, "failed", http.StatusInternalServerError)
@@ -57,7 +57,7 @@ func (us *UtilsService) PublishExportRequest(w http.ResponseWriter, r *http.Requ
 		fmt.Println("Error unmarshalling request body", err)
 		WriteJSON(w, http.StatusBadRequest, nil, false, err)
 	}
-	fmt.Println("REQUEST PAYLOAD", request)
+	// fmt.Println("REQUEST PAYLOAD", request)
 
 	GetQueryAndHeaders(&request)
 	// create new writer
@@ -98,7 +98,7 @@ func (us *UtilsService) PublishExportRequest(w http.ResponseWriter, r *http.Requ
 		StatusCode: 0,
 	}
 
-	fmt.Println("Response", response)
+	// fmt.Println("Response", response)
 	WriteJSON(w, http.StatusOK, response, true, nil)
 }
 

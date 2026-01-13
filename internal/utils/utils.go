@@ -24,7 +24,7 @@ func WriteJSON(w http.ResponseWriter, status int, data any, success bool, err an
 		IsSuccess: success,
 		Error:     err,
 	}
-	log.Printf("Message: %s: %s, isSuccess: %t, Error:%v \n", "Data received", data, success, err)
+	// log.Printf("Message: %s: %s, isSuccess: %t, Error:%v \n", success, err)
 	return json.NewEncoder(w).Encode(response)
 }
 
@@ -35,7 +35,7 @@ func GetUserDetailsFromCache(r *http.Request, configs *Configs) {
 func GetDataFromCache[T any](configs *Configs, key string, mappedStruct T) (*T, error) {
 	//var zero T
 	data, err := configs.Cache.GetData(configs.Context, key)
-	fmt.Println("CACHE DATA:", data, err)
+	// fmt.Println("CACHE DATA:", data, err)
 	if err != nil {
 		log.Printf("Error fetching data from cache %s\n", err)
 		return nil, errors.New("error fetching data from cache")
@@ -44,14 +44,14 @@ func GetDataFromCache[T any](configs *Configs, key string, mappedStruct T) (*T, 
 		log.Println("Error unmarshalling data from cache.")
 		return nil, errors.New("error unmarshalling data from cache")
 	}
-	fmt.Println("==================================")
+	// fmt.Println("==================================")
 	// fmt.Println("Unmarshal data", &mappedStruct)
 	fmt.Println("Fetched Data from Cache!!")
 	return &mappedStruct, nil
 }
 
 func checkModulePermission(permissions []UserPermissions, moduleID int) bool {
-	log.Printf("HEALTH_ID %d", HEALTH_ID)
+	// log.Printf("HEALTH_ID %d", HEALTH_ID)
 	log.Printf("Permissions LOG: %v", permissions)
 	for _, p := range permissions {
 		log.Printf("p.ModuleID: %d, moduleID: %d", p.ModuleValue, moduleID)
@@ -213,7 +213,7 @@ func ReadMessages(r *kafka.Reader, ctx context.Context,
 			log.Println("Error Reading message: ", err)
 			continue
 		}
-		fmt.Println("MESSAGE========>", string(message.Value))
+		// fmt.Println("MESSAGE========>", string(message.Value))
 		if err := callbackFn(message); err != nil {
 			log.Println("Error occured processing the message", err)
 			continue

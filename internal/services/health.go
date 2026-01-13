@@ -1,7 +1,6 @@
 package services
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/nationpulse-bff/internal/repos"
@@ -23,7 +22,7 @@ func NewHealthService(configs *Configs, repo *repos.HealthRepo) *HealthService {
 
 func (hs *HealthService) GetHealthByCountryCode(w http.ResponseWriter, r *http.Request) {
 	countryCode := r.URL.Query().Get("countryCode")
-	log.Printf("fetch health of %s\n", countryCode)
+	// log.Printf("fetch health of %s\n", countryCode)
 	data, err := hs.repo.GetHealthData(countryCode)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

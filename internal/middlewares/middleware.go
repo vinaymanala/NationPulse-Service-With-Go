@@ -8,13 +8,19 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/nationpulse-bff/internal/auth"
 	"github.com/nationpulse-bff/internal/utils"
+	"go.uber.org/zap"
 )
 
 type Middleware func(*utils.Configs, http.Handler) http.Handler
 type WithAuthMiddleware func(*utils.Configs, http.Handler) http.Handler
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
 
 func checkPermissions(configs *utils.Configs, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -67,10 +73,58 @@ func allowCors(configs *utils.Configs, next http.Handler) http.Handler {
 	})
 }
 
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
 func logging(configs *utils.Configs, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Request: %s %s", r.Method, r.URL.Path)
+
+		start := time.Now()
+		path := r.URL.Path
+		query := r.URL.RawQuery
+
 		next.ServeHTTP(w, r)
+
+		latency := time.Since(start)
+		status := &responseWriter{
+			ResponseWriter: w,
+			statusCode:     200,
+		}
+		method := r.Method
+		userAgent := r.UserAgent()
+
+		configs.Logger.Info("request completed",
+			zap.String("path", path),
+			zap.String("query", query),
+			zap.Int("status", status.statusCode),
+			zap.Duration("latency", latency),
+			zap.String("method", method),
+			zap.String("user-agent", userAgent),
+		)
+	})
+}
+
+func metrics(configs *utils.Configs, next http.Handler) http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		start := time.Now()
+		path := r.URL.Path
+
+		wrapped := &responseWriter{
+			ResponseWriter: w,
+			statusCode:     200,
+		}
+
+		next.ServeHTTP(w, r)
+
+		status := fmt.Sprintf("%d", wrapped.statusCode)
+		duration := time.Since(start).Seconds()
+		fmt.Println("===============metrics====================", status, duration)
+		configs.MetricHttpRequests.WithLabelValues(r.Method, path, status).Inc()
+		configs.MetricHttpDurations.WithLabelValues(r.Method, path).Observe(duration)
 	})
 }
 
@@ -99,13 +153,13 @@ func authMiddleware(configs *utils.Configs, next http.Handler) http.Handler {
 		// Implement authentication logic here
 		var token string
 		if c, err := r.Cookie("access_token"); err == nil && c != nil && c.Value != "" {
-			fmt.Println("--------COOKIE----------", c.Value)
+			// fmt.Println("--------COOKIE----------", c.Value)
 			token = c.Value
 		} else {
 			fmt.Println("No cookie found, checking Authorization header")
 			token = bearerFromHandler(r)
 		}
-		fmt.Println("--------TOKEN----------", token)
+		// fmt.Println("--------TOKEN----------", token)
 		if token == "" {
 			log.Println(http.StatusUnauthorized, "User does not have access or missing token")
 			http.Error(w, "User does not have access or missing token", http.StatusUnauthorized)
@@ -125,9 +179,9 @@ func authMiddleware(configs *utils.Configs, next http.Handler) http.Handler {
 			http.Error(w, "User does not have acces or invalid token jti", http.StatusUnauthorized)
 			return
 		}
-		fmt.Println("")
-		fmt.Printf("CLAIMS: %v+\n", claims)
-		fmt.Println("PATH:", r.URL.Path)
+		// fmt.Println("")
+		// fmt.Printf("CLAIMS: %v+\n", claims)
+		// fmt.Println("PATH:", r.URL.Path)
 		r.ParseForm()
 		r.Form.Set("userID", claims.Subject)
 		next.ServeHTTP(w, r)
@@ -154,6 +208,7 @@ func DefaultMiddlewares(configs *utils.Configs, next http.Handler) http.Handler 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		middlewares := []Middleware{
 			allowCors,
+			metrics,
 			logging,
 			panicRecovery,
 		}

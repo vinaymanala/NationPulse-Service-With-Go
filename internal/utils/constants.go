@@ -5,7 +5,7 @@ const (
 	ADMIN_PERMISSION string = "/api/a/"
 	PERMISSION       string = "/api/uu/permissions"
 	DASHBOARD        string = "/api/dashboard/"
-	POPULATION       string = "/api/population/"
+	POPULATION       string = "/api/growth/population/"
 	HEALTH           string = "/api/health/"
 	ECONOMY          string = "/api/economy/"
 	GROWTH           string = "/api/growth/"

@@ -2,7 +2,6 @@ package repos
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	. "github.com/nationpulse-bff/internal/utils"
@@ -29,7 +28,7 @@ func (pr *PopulationRepo) GetPopulationByCountryData(countryCode string) (any, e
 	} else {
 		return *data, nil
 	}
-	sqlStatement := `SELECT * FROM get_population_by_country_code($1)`
+	sqlStatement := `SELECT * FROM getpopulationofcountry($1)`
 	rows, err := pr.Configs.Db.Client.Query(pr.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
@@ -54,7 +53,7 @@ func (pr *PopulationRepo) GetPopulationByCountryData(countryCode string) (any, e
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
-		fmt.Println(populationByCountry)
+		// fmt.Println(populationByCountry)
 		populationByCountries = append(populationByCountries, populationByCountry)
 	}
 	if populationByCountries == nil {

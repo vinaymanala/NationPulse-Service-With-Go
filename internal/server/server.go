@@ -5,6 +5,7 @@ import (
 
 	"github.com/nationpulse-bff/internal/middlewares"
 	"github.com/nationpulse-bff/internal/utils"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type ServerMux struct {
@@ -41,6 +42,7 @@ func NewServer(configs *utils.Configs) http.Handler {
 	newMux := &ServerMux{}
 	muxes := newMux.NewServerMuxes()
 
+	rootMux.Handle("/metrics", promhttp.Handler())
 	rootMux.Handle("/api/u/",
 		middlewares.DefaultMiddlewares(configs, groupRoutePrefix("/api/u", muxes.UserMux)))
 	rootMux.Handle("/api/uu/",

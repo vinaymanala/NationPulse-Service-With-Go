@@ -132,13 +132,13 @@ func ClearAuthCookies(w http.ResponseWriter) {
 
 func ParseAccess(tokenStr string, configs *utils.Configs) (*jwt.RegisteredClaims, error) {
 	secret := configs.Cfg.AccessSecret
-	fmt.Println("SECRET RECOVERED", secret)
+	// fmt.Println("SECRET RECOVERED", secret)
 	return parseWithSecret(tokenStr, secret)
 }
 
 func ParseRefresh(tokenStr string, configs *utils.Configs) (*jwt.RegisteredClaims, error) {
 	secret := configs.Cfg.RefreshSecret
-	fmt.Println("SECRET RECOVERED", secret)
+	// fmt.Println("SECRET RECOVERED", secret)
 	return parseWithSecret(tokenStr, secret)
 }
 

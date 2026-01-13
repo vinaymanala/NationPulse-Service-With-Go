@@ -2,7 +2,6 @@ package repos
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	. "github.com/nationpulse-bff/internal/utils"
@@ -29,7 +28,7 @@ func (hr *HealthRepo) GetHealthData(countryCode string) (any, error) {
 	} else {
 		return *data, nil
 	}
-	sqlStatement := `SELECT * FROM get_healthstatus_by_country_code($1)`
+	sqlStatement := `SELECT * FROM gethealthcasesbycountry($1)`
 	rows, err := hr.Configs.Db.Client.Query(hr.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
@@ -56,7 +55,7 @@ func (hr *HealthRepo) GetHealthData(countryCode string) (any, error) {
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
-		fmt.Println(healthDataByCountry)
+		// fmt.Println(healthDataByCountry)
 		healthData = append(healthData, healthDataByCountry)
 	}
 	if healthData == nil {

@@ -2,7 +2,6 @@ package repos
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 
 	. "github.com/nationpulse-bff/internal/utils"
@@ -29,7 +28,7 @@ func (gr *GrowthRepo) GetGDPGrowthData(countryCode string) (any, error) {
 	} else {
 		return *data, nil
 	}
-	sqlStatement := `SELECT * FROM get_perfgrowthgdpds_by_country_code($1)`
+	sqlStatement := `SELECT * FROM getgrowthgdpofcountry($1)`
 	rows, err := gr.Configs.Db.Client.Query(gr.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
@@ -52,7 +51,7 @@ func (gr *GrowthRepo) GetGDPGrowthData(countryCode string) (any, error) {
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
-		fmt.Println(growthgdpDataByCountry)
+		// fmt.Println(growthgdpDataByCountry)
 		gdpGrowthData = append(gdpGrowthData, growthgdpDataByCountry)
 	}
 
@@ -76,7 +75,7 @@ func (gr *GrowthRepo) GetPopulationGrowth(countryCode string) (any, error) {
 	} else {
 		return *data, nil
 	}
-	sqlStatement := `SELECT * FROM get_perfgrowthpopulation_by_country_code($1)`
+	sqlStatement := `SELECT * FROM getgrowthpopnbycountry($1)`
 	rows, err := gr.Configs.Db.Client.Query(gr.Configs.Context, sqlStatement, countryCode)
 	if err != nil {
 		return nil, err
@@ -99,7 +98,7 @@ func (gr *GrowthRepo) GetPopulationGrowth(countryCode string) (any, error) {
 			log.Fatalf("Error scanning a row: %v\n", err)
 			return nil, err
 		}
-		fmt.Println(populationGrowthByCountry)
+		// fmt.Println(populationGrowthByCountry)
 		populationGrowthData = append(populationGrowthData, populationGrowthByCountry)
 	}
 	if populationGrowthData == nil {

@@ -47,9 +47,10 @@ func (ds *DashboardService) GetTopCountriesByHealth(w http.ResponseWriter, r *ht
 
 func (ds *DashboardService) GetTopCountriesByGDP(w http.ResponseWriter, r *http.Request) {
 	log.Println("fetch top 5 gdp countries")
-	year := time.Now().Year()
+	year := time.Now().Year() - 1
 	data, err := ds.repo.GetTopCountriesByGDPData(year, 10)
 	if err != nil {
+		log.Println("Error occured: ", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		WriteJSON(w, http.StatusInternalServerError, nil, false, err.Error())
 		return

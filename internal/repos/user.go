@@ -1,7 +1,6 @@
 package repos
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/nationpulse-bff/internal/store"
@@ -23,7 +22,7 @@ func (ur *UserRepo) GetUserDetails(user *store.User) (*store.User, error) {
 	rowOne := ur.Configs.Db.Client.QueryRow(ur.Configs.Context, sqlStatement, user.Name, user.Email)
 
 	err := rowOne.Scan(&user.ID, &user.Name, &user.Email)
-	fmt.Printf("Result: id: %s, user:%s, email:%s \n ", user.ID, user.Name, user.Email)
+	// fmt.Printf("Result: id: %s, user:%s, email:%s \n ", user.ID, user.Name, user.Email)
 
 	if err != nil {
 		return nil, err
@@ -65,6 +64,6 @@ func (ur *UserRepo) GetPermissions(user *store.User) (any, error) {
 	for _, permission := range userPermissions {
 		permissions = append(permissions, permission.PermissionValue)
 	}
-	fmt.Println("PERMISSIONS", permissions)
+	// fmt.Println("PERMISSIONS", permissions)
 	return permissions, nil
 }
